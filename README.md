@@ -1,8 +1,8 @@
-# FlowOp
+# pflow
 
-### Simulation of Discrete Production Systems
+### Simulation of Production Systems and Projects
 
-The goal of this repository is to provide software (in Julia/Python) which is able to simulate the main characteristics of production systems:
+The goal of this repository is to provide software (in Julia/Python) which is able to simulate the main characteristics of production systems and projects:
 
 - processing of orders
 - through different ressources 
@@ -20,12 +20,12 @@ So there are multiple dependencies which have to be simulated and be regarded in
 - throughput,
 - cost
 
-of production systems.
+of production systems or project organizations.
 
 All this has to be achieved by simple parametrization and by means of lists of
 
 - orders,
-- machines,
+- machines/ressources,
 - materials
 
 which are the basis of production and projects similar to systems like SAP, ERP or project management software.
