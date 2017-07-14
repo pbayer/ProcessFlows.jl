@@ -28,6 +28,11 @@ All this has to be achieved by simple parametrization and by means of lists of
 - machines/ressources,
 - materials
 
-which are the basis of production and projects similar to systems like SAP, ERP or project management software.
+which are the basis of production systems and orders or even projects usually handled by systems like SAP, ERP or project management software.
 
+### Status of Project (as of 07/2017)
+
+I did some simulations over the years for specific cases with different software systems like Simula, Modula-2, Vensim, Plantsim. 
+
+I now evaluated my new generic approach with a ```Python``` programm. So I know this works and do have a preliminary proof of concept. Since the approach shall be able to simulate also medium to large systems it has to be able to run really fast. So – since [```Julia```](https://julialang.org) is maturing – I will (re-)implement it in Julia and a working prototype and some interesting results should be available in this repository by September 2017.
  
