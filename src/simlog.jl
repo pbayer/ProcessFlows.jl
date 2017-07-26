@@ -78,11 +78,31 @@ function logtick(sim::Simulation, simlog, tick)
 end
 
 """
+vals(D::Dict)
+auxiliary function: returns a Dict with values Int or Float or of String
+"""
+function vals(D::Dict)
+  for i in keys(D)
+    D[i] = try
+      Int.(D[i])
+    catch
+      try
+        float.(D[i])
+      catch
+        string.(D[i])
+      end
+    end
+  end
+  D
+end
+
+"""
     log2df(simlog)
 
 transform the `SimLog` to a DataFrame and return it.
 """
 function log2df(simlog)
-  df = DataFrame(simlog.measurements)
+
+  df = DataFrame(vals(simlog.measurements))
   rename!(df, Dict(Symbol(" time")=>:time))
 end
