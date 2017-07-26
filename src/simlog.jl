@@ -1,0 +1,90 @@
+using SimJulia
+using DataFrames
+
+"""
+    SimLog(vars::Dict{AbstractString, Any}, measurements::Dict{AbstractString, Any})
+
+create, initialize and return a new SimLog containing
+access to variables and to measurements taken during simulation
+"""
+mutable struct SimLog
+  vars::Any
+  measurements::Any
+end
+
+
+"""
+    logvar(name::AbstractString, id::Any, value::Any)
+
+create, initialize and return a new logging variable
+"""
+mutable struct logvar
+  name::String
+  id::Any
+  value::Any
+end
+
+
+"""
+    newlog()
+
+create and return a new empty `SimLog`
+"""
+function newlog()
+  SimLog(Dict(), Dict())
+end
+
+"""
+    add2log(simlog, vars...)
+
+add several `logvar` variables to a `SimLog`
+and initialize the `measurements` Dict
+"""
+function add2log(simlog, vars...)
+  if !haskey(simlog.measurements, " time")
+    simlog.measurements[" time"] = []
+  end
+  for v in vars
+    entry = v.name*string(v.id)
+    simlog.vars[entry] = v
+    simlog.measurements[entry] = []
+  end
+end
+
+"""
+    lognow(sim::Simulation, simlog)
+
+take actual "measurements" of all registered `logvar` variables
+and add them to the `simlog.measurements` dictionary entries.
+"""
+function lognow(sim::Simulation, simlog)
+  push!(simlog.measurements[" time"], now(sim))
+  for v in keys(simlog.vars)
+    push!(simlog.measurements[v], simlog.vars[v].value)
+  end
+end
+
+"""
+    logtick(sim::Simulation, simlog, tick)
+
+log `logvar` variables registered in `simlog` every `tick`
+simulation units. You have to start this as a process with
+`@process logtick(sim, simlog, tick)`
+"""
+function logtick(sim::Simulation, simlog, tick)
+  lognow(sim, simlog)
+  while true
+    yield(Timeout(sim, tick))
+    lognow(sim, simlog)
+  end
+end
+
+"""
+    log2df(simlog)
+
+transform the `SimLog` to a DataFrame and return it.
+""" 
+function log2df(simlog)
+  df = DataFrame(simlog.measurements)
+  rename!(df, Dict(Symbol(" time")=>:time))
+end
