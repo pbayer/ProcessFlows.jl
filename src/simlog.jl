@@ -14,13 +14,12 @@ end
 
 
 """
-    logvar(name::AbstractString, id::Any, value::Any)
+    logvar(name::AbstractString, value::Any)
 
 create, initialize and return a new logging variable
 """
 mutable struct logvar
-  name::String
-  id::Any
+  name::AbstractString
   value::Any
 end
 
@@ -45,9 +44,8 @@ function add2log(simlog, vars...)
     simlog.measurements[" time"] = []
   end
   for v in vars
-    entry = v.name*string(v.id)
-    simlog.vars[entry] = v
-    simlog.measurements[entry] = []
+    simlog.vars[v.name] = v
+    simlog.measurements[v.name] = []
   end
 end
 
@@ -83,7 +81,7 @@ end
     log2df(simlog)
 
 transform the `SimLog` to a DataFrame and return it.
-""" 
+"""
 function log2df(simlog)
   df = DataFrame(simlog.measurements)
   rename!(df, Dict(Symbol(" time")=>:time))
