@@ -1,3 +1,13 @@
+# --------------------------------------------
+# this file is part of PFlow.jl - could be inculded into SimJulia
+# it implements the logging
+# --------------------------------------------
+# author: Paul Bayer, Paul.Bayer@gleichsam.de
+# date: 2017-07-29
+# --------------------------------------------
+# license: MIT
+# --------------------------------------------
+
 using SimJulia
 using DataFrames
 
