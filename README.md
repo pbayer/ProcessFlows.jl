@@ -2,7 +2,7 @@
 
 ### Simulation of Production Systems and Projects
 
-The goal of this repository is to provide software (in `Juliaà), which is able to simulate the main characteristics of production systems and projects:
+The goal of this repository is to provide software (in `Julia`), which is able to simulate the main characteristics of production systems and projects:
 
 - processing of orders
 - through different resources
