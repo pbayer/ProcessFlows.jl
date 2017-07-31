@@ -9,11 +9,37 @@
 # --------------------------------------------
 
 """
+    transact(sim::Simulation, res, order, time, log=true)
+
+let resource op transact on an order for a certain time
+"""
+function transact(sim::Simulation, res, order, time, log=true)
+  if op.status == idle
+    op.status = occupied
+    op.order = order
+    start = sim.now()
+    t = calculate(time, op)
+    result = Timeout(t | interrupt)
+    while result == breakdown
+      done = now(sim) - start
+      op.status = breakdown
+      t = calculate_repair_time()
+      result = Timeout(t | interrupt)
+      op.status = occupied
+      result = Timeout(t | interrupt)
+    end
+  end
+end
+
+"""
     operate()
 """
 function operate()
 end
 
+"""
+    transport()
+"""
 function transport()
 end
 

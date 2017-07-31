@@ -1,5 +1,5 @@
 # --------------------------------------------
-# this file is part of PFlow.jl - could be inculded into SimJulia
+# this file is part of PFlow.jl (could be included into SimJulia)
 # it implements the logging
 # --------------------------------------------
 # author: Paul Bayer, Paul.Bayer@gleichsam.de
@@ -8,8 +8,6 @@
 # license: MIT
 # --------------------------------------------
 
-using SimJulia
-using DataFrames
 
 """
     SimLog(vars::Dict{AbstractString, Any}, measurements::Dict{AbstractString, Any})
