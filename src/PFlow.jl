@@ -3,16 +3,19 @@ Main module for PFlow.jl, a Julia simulator for production systems and projects
 """
 module PFlow
 
-using SimJulia, DataFrames, DataStructures
+using SimJulia
 
+import Base: length, isempty, start, next, done
+import DataStructures: Queue, front, back, enqueue!, dequeue!
 
-export isempty, isfull, length, pop!, unshift!, front, back
+export PFQueue, isempty, isfull, length, capacity, front, back, enqueue!,
+       dequeue!, start, next, done
 export newlog, logvar, logvar2log, dict2log, lognow, logtick, log2df
 
-include("activities.jl")
+#include("activities.jl")
 include("entities.jl")
 include("queues.jl")
-include("schedule.jl")
+#include("schedule.jl")
 include("simlog.jl")
 
 

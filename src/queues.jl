@@ -8,69 +8,49 @@
 # license: MIT
 # --------------------------------------------
 
-"""
-    isempty(q::Queue)::Bool
+isempty(q::PFQueue) = isempty(q.queue)
 
-check, if a Queue is empty
 """
-function isempty(q::Queue)::Bool
-  isempty(q.queue)
+    isfull(q::PFQueue)
+
+check, if a PFQueue is full
+"""
+function isfull(q::PFQueue)
+  return length(q.queue) ≥ q.res.capacity
 end
 
 """
-    isfull(q::Queue)::Bool
+    capacity(q::PFQueue)
 
-check, if a Queue is full
+return the maximum length of a PFQueue
 """
-function isfull(q::Queue)::Bool
-  length(q.queue) ≥ q.res.capacity
+function capacity(q::PFQueue)
+  return q.res.capacity
+end
+
+length(q::PFQueue) = length(q.queue)
+
+front(q::PFQueue) = front(q.queue)
+back(q::PFQueue) = back(q.queue)
+
+"""
+    enqueue!(q::PFQueue, x)
+
+enqueue x at the end of q.queue and return q.queue
+"""
+function enqueue!(q::PFQueue, x)
+  isfull(q) && throw(ArgumentError("PFQueue must not be full"))
+  enqueue!(q.queue, x)
 end
 
 """
-    length(q::Queue)::Int64
+    dequeue!(q::PFQueue)
+Removes an element from the front of the queue `s` and returns it.
+"""
+dequeue!(q::PFQueue) = dequeue!(q.queue)
 
-get the number of elements in Queue
-"""
-function length(q::Queue)
-  length(q.queue)
-end
+# Iterators
 
-"""
-    pop!(q::Queue, item::Any)
-
-remove an element from the back
-"""
-function pop!(q::Queue, item::Any)
-  pop!(q.queue, item)
-  Release(q.res)
-end
-
-"""
-    unshift!(q::Queue, item::Any)
-
-add an element to the front
-"""
-function unshift!(q::Queue, item::Any)
-  if !isfull(q)
-    unshift!(q.queue, item)
-  else
-    error("Queue is full")
-  end
-end
-
-"""
-    front(q::Queue)
-
-get the element at the front
-"""
-function front(q::Queue)
-  front(q.queue)
-end
-
-"""
-    back(q::Queue)
-get the element at the back
-"""
-function back(q::Queue)
-  back(q.queue)
-end
+start(q::PFQueue) = start(q.queue)
+next(q::PFQueue, x) = next(q.queue, x)
+done(q::PFQueue, x) = done(q.queue, x)

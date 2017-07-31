@@ -8,16 +8,16 @@
 # license: MIT
 # --------------------------------------------
 
-mutable struct Queue
+mutable struct PFQueue
   name::AbstractString
   res::Resource
-  queue::Deque
+  queue::Queue
 end
 
 mutable struct transaction
   name::AbstractString
   res::Resource
-  input::Queue
-  output::Queue
+  input::PFQueue
+  output::PFQueue
   status::AbstractString
 end
