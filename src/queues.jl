@@ -7,7 +7,7 @@
 # license: MIT
 # --------------------------------------------
 
-isempty(q::PFQueue) = isempty(q.queue)
+isempty(q::PFQueue) = DataStructures.isempty(q.queue)
 
 """
     isfull(q::PFQueue)
@@ -25,8 +25,8 @@ capacity(q::PFQueue) = q.res.capacity
 
 length(q::PFQueue) = length(q.queue)
 
-front(q::PFQueue) = front(q.queue)
-back(q::PFQueue) = back(q.queue)
+front(q::PFQueue) = DataStructures.front(q.queue)
+back(q::PFQueue) = DataStructures.back(q.queue)
 
 """
     enqueue!(q::PFQueue, x)
@@ -43,10 +43,10 @@ end
 
 Removes an element from the front of the queue `s` and returns it.
 """
-dequeue!(q::PFQueue) = dequeue!(q.queue)
+dequeue!(q::PFQueue) = DataStructures.dequeue!(q.queue)
 
 # Iterators
 
-start(q::PFQueue) = start(q.queue)
-next(q::PFQueue, x) = next(q.queue, x)
-done(q::PFQueue, x) = done(q.queue, x)
+start(q::PFQueue) = DataStructures.start(q.queue)
+next(q::PFQueue, x) = DataStructures.next(q.queue, x)
+done(q::PFQueue, x) = DataStructures.done(q.queue, x)
