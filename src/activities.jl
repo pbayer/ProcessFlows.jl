@@ -70,6 +70,7 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
       if wu.status == IDLE            # get a new job
         yield(Get(wu.input.res, 1))
         job = dequeue!(wu.input)
+        print("after dequeing: ")
         println(job)
         enqueue!(wu.jobs, job)
         job.status = PROGRESS
