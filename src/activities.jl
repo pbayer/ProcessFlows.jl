@@ -136,9 +136,9 @@ function machine(sim::Simulation, log::Simlog,
                  name::AbstractString, mtbf::Number, mttr::Number,
                  input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=100)
   wu = Workunit(name, MACHINE,
-                PFQueue(name*"-IN", Resource(sim, input), Queue()),
-                PFQueue(name*"-JOB", Resource(sim, jobs), Queue()),
-                PFQueue(name*"-OUT", Resource(sim, output), Queue()),
+                PFQueue(name*"-IN", Resource(sim, input), Queue(Job)),
+                PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
+                PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),
                 IDLE, alpha, mtbf, mttr)
 
   @process work(sim, wu, log)
