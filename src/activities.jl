@@ -140,7 +140,7 @@ function machine(sim::Simulation, log::Simlog,
                 PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
                 PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),
                 IDLE, alpha, mtbf, mttr)
-
+  logvar2log(log, Logvar(name*".status", wu.status))
   @process work(sim, wu, log)
   wu
 end
