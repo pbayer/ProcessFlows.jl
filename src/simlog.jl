@@ -10,16 +10,19 @@
 
 
 """
-    SimLog(vars::Dict{AbstractString, Any}, measurements::Dict{AbstractString, Any})
+    Simlog(vars::Dict{AbstractString, Any}
+           redict::Dict{AbstractString, AbstractString}
+           prefix::Dict{AbstractString, AbstractString}
+           measurements::Dict{AbstractString, Any})
 
 create, initialize and return a new SimLog containing
 access to variables and to measurements taken during simulation
 """
-mutable struct SimLog
-  vars
-  redict
-  prefix
-  measurements
+mutable struct Simlog
+  vars::Dict{AbstractString, Any}
+  redict::Dict{AbstractString, AbstractString}
+  prefix::Dict{AbstractString, AbstractString}
+  measurements::Dict{AbstractString, Any}
 end
 
 
@@ -28,7 +31,7 @@ end
 
 create, initialize and return a new logging variable
 """
-mutable struct logvar
+mutable struct Logvar
   name::AbstractString
   value::Union{AbstractString,Number}
 end
@@ -37,19 +40,17 @@ end
 """
     newlog()
 
-create and return a new empty `SimLog`
+create and return a new empty `Simlog`
 """
-function newlog()
-  SimLog(Dict(), Dict(), Dict(), Dict())
-end
+newlog() = Simlog(Dict(), Dict(), Dict(), Dict())
 
 """
-    logvar2log(simlog, vars...)
+    logvar2log(simlog::Simlog, vars::Logvar...)
 
-add one or several `logvar` variables to a `SimLog`
+add one or several `Logvar` variables to a `SimLog`
 and initialize the `measurements` Dict
 """
-function logvar2log(simlog, vars...)
+function logvar2log(simlog::Simlog, vars...)
   if !haskey(simlog.measurements, " time")
     simlog.measurements[" time"] = []
   end
@@ -74,7 +75,7 @@ and initialise the `measurements` Dict
   e.g. Dict(1=>"A", 2=>"B")
 
 """
-function dict2log(simlog, dict; prefix::AbstractString="", redict=Dict())
+function dict2log(simlog::Simlog, dict::Dict{Any, Any}; prefix::AbstractString="", redict=Dict())
   name = string(hash(dict))
   if !haskey(simlog.measurements, " time")
     simlog.measurements[" time"] = []
@@ -91,15 +92,15 @@ end
 
 
 """
-    lognow(sim::Simulation, simlog)
+    lognow(sim::Simulation, simlog::Simlog)
 
-take actual "measurements" of all registered `logvar` variables
+take actual "measurements" of all registered `Logvar` variables
 and add them to the `simlog.measurements` dictionary entries.
 """
-function lognow(sim::Simulation, simlog)
+function lognow(sim::Simulation, simlog::Simlog)
   push!(simlog.measurements[" time"], now(sim))
   for v in keys(simlog.vars)                          # check all simlog vars
-    if typeof(simlog.vars[v]) == logvar                       # is it a logvar?
+    if typeof(simlog.vars[v]) == Logvar                       # is it a Logvar?
       push!(simlog.measurements[v], simlog.vars[v].value)
     elseif typeof(try haskey(simlog.vars[v], 0) end) == Bool  # is it a dict?
       for k in keys(simlog.vars[v])
@@ -114,13 +115,13 @@ function lognow(sim::Simulation, simlog)
 end
 
 """
-    logtick(sim::Simulation, simlog, tick)
+    logtick(sim::Simulation, simlog::Simlog, tick::Number)
 
 log `logvar` variables registered in `simlog` every `tick`
 simulation units. You have to start this as a process with
 `@process logtick(sim, simlog, tick)`
 """
-function logtick(sim::Simulation, simlog, tick)
+function logtick(sim::Simulation, simlog::Simlog, tick::Number)
   lognow(sim, simlog)
   while true
     yield(Timeout(sim, tick))
@@ -150,9 +151,9 @@ end
 """
     log2df(simlog)
 
-transform the `SimLog` to a DataFrame and return it.
+transform the `Simlog` to a DataFrame and return it.
 """
-function log2df(simlog)
+function log2df(simlog::Simlog)
   df = DataFrame(vals(simlog.measurements))
   rename!(df, Dict(Symbol(" time")=>:time))
 end

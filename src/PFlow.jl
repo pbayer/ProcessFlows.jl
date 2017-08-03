@@ -8,17 +8,20 @@ using SimJulia
 import Base: length, isempty, start, next, done
 import DataStructures: Queue, OrderedDict, front, back, enqueue!, dequeue!
 import Distributions: Erlang, Exponential
+import DataFrames: DataFrame, rename!
 
-export task
-export PFQueue, isempty, isfull, length, capacity, front, back, enqueue!,
+export work, schedule_failure, machine, worker, transport, inspector, store
+export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE,
+       PFQueue, Workunit, Job, Order
+export isempty, isfull, length, capacity, front, back, enqueue!,
        dequeue!, start, next, done
-export newlog, logvar, logvar2log, dict2log, lognow, logtick, log2df
+export newlog, Logvar, logvar2log, dict2log, lognow, logtick, log2df
 
-include("activities.jl")
+include("simlog.jl")
 include("entities.jl")
 include("queues.jl")
+include("activities.jl")
 #include("schedule.jl")
-include("simlog.jl")
 
 
 end

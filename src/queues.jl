@@ -3,7 +3,6 @@
 # it implements the queuing
 # --------------------------------------------
 # author: Paul Bayer, Paul.Bayer@gleichsam.de
-# date: 2017-07-29
 # --------------------------------------------
 # license: MIT
 # --------------------------------------------
@@ -15,18 +14,14 @@ isempty(q::PFQueue) = isempty(q.queue)
 
 check, if a PFQueue is full
 """
-function isfull(q::PFQueue)
-  return length(q.queue) ≥ q.res.capacity
-end
+isfull(q::PFQueue) = length(q.queue) ≥ q.res.capacity
 
 """
     capacity(q::PFQueue)
 
 return the maximum length of a PFQueue
 """
-function capacity(q::PFQueue)
-  return q.res.capacity
-end
+capacity(q::PFQueue) = q.res.capacity
 
 length(q::PFQueue) = length(q.queue)
 
@@ -45,6 +40,7 @@ end
 
 """
     dequeue!(q::PFQueue)
+
 Removes an element from the front of the queue `s` and returns it.
 """
 dequeue!(q::PFQueue) = dequeue!(q.queue)

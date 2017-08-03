@@ -17,26 +17,33 @@ const OPEN = 0
 const PROGRESS = 1
 const DONE = 2
 
+const MACHINE = 0
+const WORKER = 1
+const TRANSPORT = 2
+const INSPECTOR = 3
+const STORE = 4
+
 mutable struct PFQueue
   name::AbstractString
   res::Resource
   queue::Queue
 end
 
-mutable struct Station
+mutable struct Workunit
   name::AbstractString
-  task::Process
-  res::Resource
-  jobs::PFQueue
+  kind::Int64
   input::PFQueue
+  jobs::PFQueue
   output::PFQueue
   status::Int64
   alpha::Int64               # Erlang scale parameter
+  mtbf::Number
+  mttr::Number
 end
 
 mutable struct Job
   name::AbstractString
-  station::Station
+  wu::Workunit
   op_time::Real
   status::Int64
   batch_size::Int64

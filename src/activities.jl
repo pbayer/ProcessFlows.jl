@@ -9,98 +9,121 @@
 # --------------------------------------------
 
 """
-    opTime(st::Station, job::Job)
+    opTime(wu::Workunit, job::Job)
 
 calculate the operation time of a job at a station
 """
-function opTime(st::Station, job::Job)
-  μ = job.op_time / (2 * st.alpha)
-  rand(Erlang(st.alpha, μ))
+function opTime(wu::Workunit, job::Job)
+  μ = job.op_time / (2 * wu.alpha)
+  rand(Erlang(wu.alpha, μ))
 end
 
-function repTime(st::Station, alpha=1)
-  μ = st.mttr / (2 * alpha)
+"""
+    repTime(wu:Workunit, alpha=1)
+
+calculate a repairtime based on wu.mttr
+"""
+function repTime(wu::Workunit, alpha=1)
+  μ = wu.mttr / (2 * alpha)
   rand(Erlang(alpha, μ))
 end
 
 """
     failure(sim::Simulation, proc::Process, mttr::Real)
 
-schedule a FAILURE interrupt after rand(Exponential(mttr))
+interrupt a process with a FAILURE after rand(Exponential(mttr))
 """
-function failure(sim::Simulation, proc::Process, mttr::Real)
+function failure(sim::Simulation, proc::Process, mtbf::Real)
   while true
-    Δt = rand(Exponential(mttr))
+    Δt = rand(Exponential(mtbf))
     yield(Timeout(sim, Δt))
     interrupt(proc, FAILURE)
   end
 end
 
+"""
+    schedule_failure(sim::Simulation, proc::Process, mtbf::Real)
+
+schedule a FAILURE for a Process
+"""
+function schedule_failure(sim::Simulation, proc::Process, mtbf::Real)
+  @process failure(sim, proc, mtbf)
+end
 
 """
-    task(sim::Simulation, st::Station, log=true)
+    work(sim::Simulation, wu::Workunit, log=true)
 
-let a station work on its jobs
+let a Workunit work on its jobs
 """
-function task(sim::Simulation, st::Station, log=true)
+function work(sim::Simulation, wu::Workunit, log::Simlog)
   t0 = 0.0
   t1 = 0.0
   oldstatus = IDLE
   while true
     try
-      if st.status == IDLE            # get a new job
-        yield(Get(st.input.res, 1))
-        job = dequeue!(st.input)
-        enqueue!(st.jobs, job)
+      if wu.status == IDLE            # get a new job
+        yield(Get(wu.input.res, 1))
+        job = dequeue!(wu.input)
+        enqueue!(wu.jobs, job)
         job.status = PROGRESS
-        st.status = WORKING
-        Δt = opTime(st, job)
+        wu.status = WORKING
+        lognow(sim, log)
+        Δt = opTime(wu, job)
         t0 = now(sim)
         t1 = 0.0
         yield(Timeout(sim, Δt))
         job.status = DONE
-        if isfull(st.output)
-          st.status = BLOCKED
+        if isfull(wu.output)
+          wu.status = BLOCKED
+          lognow(sim, log)
         else
-          dequeue!(st.jobs)
-          enqueue!(st.output, job)
+          dequeue!(wu.jobs)
+          enqueue!(wu.output, job)
+          wu.status = IDLE
+          lognow(sim, log)
         end
-      elseif st.status == BLOCKED      # output buffer is full
-        yield(Put(st.output.res, 1))
-        dequeue!(st.jobs)
-        enqueue!(st.output, job)
-        st.status = IDLE
-      elseif st.status == WORKING      # return to work after failure
+      elseif wu.status == BLOCKED      # output buffer is yet full
+        yield(Put(wu.output.res, 1))
+        dequeue!(wu.jobs)
+        enqueue!(wu.output, job)
+        wu.status = IDLE
+        lognow(sim, log)
+      elseif wu.status == WORKING      # return to work after failure
         Δt -= t1
         t0 = now(sim)
         yield(Timeout(sim, Δt))
         job.status = DONE
-        if isfull(st.output)
-          st.status = BLOCKED
+        if isfull(wu.output)
+          wu.status = BLOCKED
+          lognow(sim, log)
         else
-          dequeue!(st.jobs)
-          enqueue!(st.output, job)
+          dequeue!(wu.jobs)
+          enqueue!(wu.output, job)
+          wu.status = IDLE
+          lognow(sim, log)
         end
-      elseif st.status == FAILURE      # request repair
-        yield(Timeout(sim, repTime(st)))
-        st.status = oldstatus
+      elseif wu.status == FAILURE      # request repair
+        yield(Timeout(sim, repTime(wu)))
+        wu.status = oldstatus
+        lognow(sim, log)
       else
-        throw(ArgumentError(@sprintf("%s: %d st.status not defined", st.name, st.status)))
+        throw(ArgumentError(@sprintf("%s: %d wu.status not defined", wu.name, wu.status)))
       end
     catch exc
       if isa(exc, SimJulia.InterruptException) && exc.cause == FAILURE
-        oldstatus = st.status
-        if st.status == IDLE
-          st.status = FAILURE
-        elseif st.status == WORKING
+        if oldstatus != FAILURE
+          oldstatus = wu.status
+        end
+        schedule_failure(sim, active_process(), wu.mtbf) # schedule next failure
+        if wu.status ∈ (IDLE, BLOCKED, FAILURE)
+          wu.status = FAILURE
+          lognow(sim, log)
+        elseif wu.status == WORKING
           t1 += now(sim) - t0       # time worked into that job
-          st.status = FAILURE
-        elseif st.status == FAILURE # yet another FAILURE
-          continue
-        elseif st.status == BLOCKED
-          st.status = FAILURE
+          wu.status = FAILURE
+          lognow(sim, log)
         else
-          throw(ArgumentError(@sprintf("%s: %d st.status not defined", st.name, st.status)))
+          throw(ArgumentError(@sprintf("%s: %d wu.status not defined", wu.name, wu.status)))
         end
       else
         throw(exc) # propagate exception
@@ -111,9 +134,29 @@ end
 
 
 """
-    operate()
+    machine{T::Int64}(sim::Simulation, log::Bool,
+                      name::AbstractString, mtbf::Number, mttr::Number,
+                      input::T=1, jobs::T=1, output::T=1, alpha::T=100)
+
+create a new machine start a process on it and return it
 """
-function operate()
+function machine{T::Int64}(sim::Simulation, log::Simlog,
+                           name::AbstractString, mtbf::Number, mttr::Number,
+                           input::T=1, jobs::T=1, output::T=1, alpha::T=100)
+  wu = Workunit(name, MACHINE,
+                PFQueue(name*"-IN", Resource(sim, input), Queue()),
+                PFQueue(name*"-JOB", Resource(sim, jobs), Queue()),
+                PFQueue(name*"-OUT", Resource(sim, output), Queue()),
+                IDLE, alpha, mtbf, mttr)
+
+  @process work(sim, wu, log)
+  wu
+end
+
+"""
+    worker()
+"""
+function worker()
 end
 
 """
@@ -123,15 +166,9 @@ function transport()
 end
 
 """
-    delay()
+    inspector()
 """
-function delay()
-end
-
-"""
-    inspect()
-"""
-function inspect()
+function inspector()
 end
 
 """
