@@ -4,7 +4,7 @@ using PFlow
 
 function scheduler(sim::Simulation, wu::Workunit, n::Int64=100)
   for i ∈ 1:n
-    job = Job("Job"*string(i), wu, randn()+5, OPEN, 1, "")
+    job = Job("Job"*string(i), wu.name, randn()+5, OPEN, 1, "")
     yield(Put(wu.input.res, 1))
     enqueue!(wu.input, job)
   end

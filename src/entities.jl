@@ -43,7 +43,7 @@ end
 
 mutable struct Job
   name::AbstractString
-  wu::Workunit
+  wu::AbstractString
   op_time::Real
   status::Int64
   batch_size::Int64
