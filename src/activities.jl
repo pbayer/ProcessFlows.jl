@@ -82,6 +82,7 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
           setstatus(BLOCKED)
         else
           dequeue!(wu.jobs)
+          Put(wu.output.res, 1)
           enqueue!(wu.output, job)
           setstatus(IDLE)
         end
@@ -99,6 +100,7 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
           setstatus(BLOCKED)
         else
           dequeue!(wu.jobs)
+          Put(wu.output.res, 1)
           enqueue!(wu.output, job)
           setstatus(IDLE)
         end

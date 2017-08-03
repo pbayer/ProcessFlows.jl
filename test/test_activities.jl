@@ -14,6 +14,8 @@ function delivery(sim::Simulation, wu::Workunit)
   while true
     yield(Get(wu.output.res))
     job = dequeue!(wu.output)
+    println("Scheduler after dequeuing: ")
+    println(job)
     println(@sprintf("%0.2f: job %s is done", now(sim), job.name))
   end
 end
