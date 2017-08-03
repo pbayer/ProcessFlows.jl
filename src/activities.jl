@@ -56,6 +56,12 @@ end
 let a Workunit work on its jobs
 """
 function work(sim::Simulation, wu::Workunit, log::Simlog)
+
+  function setstatus(status)
+    wu.status = status
+    lognow(sim, log)
+  end
+
   t0 = 0.0
   t1 = 0.0
   oldstatus = IDLE
@@ -66,46 +72,39 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
         job = dequeue!(wu.input)
         enqueue!(wu.jobs, job)
         job.status = PROGRESS
-        wu.status = WORKING
-        lognow(sim, log)
+        setstatus(WORKING)
         Δt = opTime(wu, job)
         t0 = now(sim)
         t1 = 0.0
         yield(Timeout(sim, Δt))
         job.status = DONE
         if isfull(wu.output)
-          wu.status = BLOCKED
-          lognow(sim, log)
+          setstatus(BLOCKED)
         else
           dequeue!(wu.jobs)
           enqueue!(wu.output, job)
-          wu.status = IDLE
-          lognow(sim, log)
+          setstatus(IDLE)
         end
       elseif wu.status == BLOCKED      # output buffer is yet full
         yield(Put(wu.output.res, 1))
         dequeue!(wu.jobs)
         enqueue!(wu.output, job)
-        wu.status = IDLE
-        lognow(sim, log)
+        setstatus(IDLE)
       elseif wu.status == WORKING      # return to work after failure
         Δt -= t1
         t0 = now(sim)
         yield(Timeout(sim, Δt))
         job.status = DONE
         if isfull(wu.output)
-          wu.status = BLOCKED
-          lognow(sim, log)
+          setstatus(BLOCKED)
         else
           dequeue!(wu.jobs)
           enqueue!(wu.output, job)
-          wu.status = IDLE
-          lognow(sim, log)
+          setstatus(IDLE)
         end
       elseif wu.status == FAILURE      # request repair
         yield(Timeout(sim, repTime(wu)))
-        wu.status = oldstatus
-        lognow(sim, log)
+        setstatus(oldstatus)
       else
         throw(ArgumentError(@sprintf("%s: %d wu.status not defined", wu.name, wu.status)))
       end
@@ -115,16 +114,10 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
           oldstatus = wu.status
         end
         schedule_failure(sim, active_process(), wu.mtbf) # schedule next failure
-        if wu.status ∈ (IDLE, BLOCKED, FAILURE)
-          wu.status = FAILURE
-          lognow(sim, log)
-        elseif wu.status == WORKING
+        if wu.status == WORKING
           t1 += now(sim) - t0       # time worked into that job
-          wu.status = FAILURE
-          lognow(sim, log)
-        else
-          throw(ArgumentError(@sprintf("%s: %d wu.status not defined", wu.name, wu.status)))
         end
+        setstatus(FAILURE)
       else
         throw(exc) # propagate exception
       end # if
@@ -132,17 +125,16 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
   end # while
 end
 
-
 """
-    machine{T::Int64}(sim::Simulation, log::Bool,
-                      name::AbstractString, mtbf::Number, mttr::Number,
-                      input::T=1, jobs::T=1, output::T=1, alpha::T=100)
+    machine(sim::Simulation, log::Bool,
+            name::AbstractString, mtbf::Number, mttr::Number,
+            input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=100)
 
 create a new machine start a process on it and return it
 """
-function machine{T::Int64}(sim::Simulation, log::Simlog,
-                           name::AbstractString, mtbf::Number, mttr::Number,
-                           input::T=1, jobs::T=1, output::T=1, alpha::T=100)
+function machine(sim::Simulation, log::Simlog,
+                 name::AbstractString, mtbf::Number, mttr::Number,
+                 input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=100)
   wu = Workunit(name, MACHINE,
                 PFQueue(name*"-IN", Resource(sim, input), Queue()),
                 PFQueue(name*"-JOB", Resource(sim, jobs), Queue()),
