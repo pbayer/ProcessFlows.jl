@@ -50,7 +50,7 @@ newlog() = Simlog(Dict(), Dict(), Dict(), Dict())
 add one or several `Logvar` variables to a `SimLog`
 and initialize the `measurements` Dict
 """
-function logvar2log(simlog::Simlog, vars...)
+function logvar2log(simlog::Simlog, vars::Logvar...)
   if !haskey(simlog.measurements, " time")
     simlog.measurements[" time"] = []
   end
