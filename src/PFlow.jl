@@ -16,7 +16,7 @@ export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE,
        PFQueue, Workunit, Job, Order
 export isempty, isfull, length, capacity, front, back, enqueue!,
        dequeue!, start, next, done
-export newlog, Logvar, logvar2log, dict2log, lognow, logtick, log2df
+export newlog, Simlog, Logvar, logvar2log, dict2log, lognow, logtick, log2df
 
 include("simlog.jl")
 include("entities.jl")

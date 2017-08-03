@@ -35,7 +35,6 @@ mutable struct Workunit
   input::PFQueue
   jobs::PFQueue
   output::PFQueue
-  status::Int64
   alpha::Int64               # Erlang scale parameter
   mtbf::Number
   mttr::Number
