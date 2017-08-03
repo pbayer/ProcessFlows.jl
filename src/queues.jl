@@ -35,7 +35,7 @@ enqueue x at the end of q.queue and return q.queue
 """
 function enqueue!(q::PFQueue, x::Job)
   isfull(q) && throw(ArgumentError("PFQueue must not be full"))
-  enqueue!(q.queue, x)
+  DataStructures.enqueue!(q.queue, x)
 end
 
 """
