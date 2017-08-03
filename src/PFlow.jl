@@ -5,6 +5,7 @@ module PFlow
 
 using SimJulia
 
+import DataStructures
 import Base: length, isempty, start, next, done
 import DataStructures: Queue, OrderedDict
 import Distributions: Erlang, Exponential
