@@ -15,7 +15,7 @@ calculate the operation time of a job at a station
 """
 function opTime(wu::Workunit, job::Job)
   μ = job.op_time / (2 * wu.alpha)
-  rand(Erlang(wu.alpha, μ))
+  job.op_time/2 + rand(Erlang(wu.alpha, μ))
 end
 
 """
@@ -58,6 +58,7 @@ let a Workunit work on its jobs
 function work(sim::Simulation, wu::Workunit, log::Simlog)
 
   function setstatus(newstatus)
+    lognow(sim, log)
     status.value = newstatus
     lognow(sim, log)
   end
@@ -79,7 +80,7 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
     setstatus(IDLE)
   end
 
-  status = Logvar(wu.name*".status", IDLE)
+  status = Logvar(wu.name, IDLE)
   logvar2log(log, status)
   t0 = 0.0
   t1 = 0.0

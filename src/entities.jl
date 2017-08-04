@@ -3,7 +3,6 @@
 # it implements the data structures
 # --------------------------------------------
 # author: Paul Bayer, Paul.Bayer@gleichsam.de
-# date: 2017-07-29
 # --------------------------------------------
 # license: MIT
 # --------------------------------------------
