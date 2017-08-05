@@ -7,14 +7,20 @@
 # license: MIT
 # --------------------------------------------
 
-isempty(q::PFQueue) = DataStructures.isempty(q.queue)
+function isempty(q::PFQueue)
+    @assert length(q.queue) == q.res.level "isempty: PFQueue not synchronized"
+    DataStructures.isempty(q.queue)
+end
 
 """
     isfull(q::PFQueue)
 
 check, if a PFQueue is full
 """
-isfull(q::PFQueue) = length(q.queue) ≥ q.res.capacity
+function isfull(q::PFQueue)
+    @assert length(q.queue) == q.res.level "isfull: PFQueue not synchronized"
+    length(q.queue) ≥ q.res.capacity
+end
 
 """
     capacity(q::PFQueue)
@@ -31,19 +37,22 @@ back(q::PFQueue) = DataStructures.back(q.queue)
 """
     enqueue!(q::PFQueue, x)
 
-enqueue x at the end of q.queue and return q.queue
+wait for a place, enqueue x at the end of q.queue and return q.queue
 """
 function enqueue!(q::PFQueue, x::Job)
-  isfull(q) && throw(ArgumentError("PFQueue must not be full"))
-  DataStructures.enqueue!(q.queue, x)
+    yield(Put(q.res, 1))
+    DataStructures.enqueue!(q.queue, x)
 end
 
 """
     dequeue!(q::PFQueue)
 
-Removes an element from the front of the queue `s` and returns it.
+wait for something in the queue, remove it from its front and return it.
 """
-dequeue!(q::PFQueue) = DataStructures.dequeue!(q.queue)
+function dequeue!(q::PFQueue)
+    yield(Get(q.res, 1))
+    DataStructures.dequeue!(q.queue)
+end
 
 # Iterators
 

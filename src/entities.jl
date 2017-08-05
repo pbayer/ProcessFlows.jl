@@ -12,6 +12,8 @@ const WORKING = 1
 const FAILURE = 2
 const BLOCKED = 3
 
+mstatus = ("idle", "working", "failure", "blocked") 
+
 const OPEN = 0
 const PROGRESS = 1
 const DONE = 2
