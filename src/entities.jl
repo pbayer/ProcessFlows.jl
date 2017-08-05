@@ -3,7 +3,6 @@
 # it implements the data structures
 # --------------------------------------------
 # author: Paul Bayer, Paul.Bayer@gleichsam.de
-# date: 2017-07-29
 # --------------------------------------------
 # license: MIT
 # --------------------------------------------
@@ -12,6 +11,8 @@ const IDLE = 0
 const WORKING = 1
 const FAILURE = 2
 const BLOCKED = 3
+
+mstatus = ("idle", "working", "failure", "blocked") 
 
 const OPEN = 0
 const PROGRESS = 1
@@ -35,7 +36,6 @@ mutable struct Workunit
   input::PFQueue
   jobs::PFQueue
   output::PFQueue
-  status::Int64
   alpha::Int64               # Erlang scale parameter
   mtbf::Number
   mttr::Number
