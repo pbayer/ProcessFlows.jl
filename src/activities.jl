@@ -8,13 +8,20 @@
 # --------------------------------------------
 
 """
+    currentjob(wu::Workunit)
+
+give the current job for a workunit
+"""
+currentjob(wu::Workunit) = front(wu.jobs)
+
+"""
     opTime(wu::Workunit, job::Job)
 
 calculate the operation time of a job at a station
 """
-function opTime(wu::Workunit, job::Job)
-    μ = job.op_time / (2 * wu.alpha)
-    job.op_time/2 + rand(Erlang(wu.alpha, μ))
+function opTime(alpha::Int64, plan::Real)
+    μ = plan / (2 * alpha)
+    plan/2 + rand(Erlang(alpha, μ))
 end
 
 """
@@ -34,20 +41,51 @@ interrupt a process with a FAILURE after rand(Exponential(mttr))
 """
 function failure(sim::Simulation, proc::Process, mtbf::Real)
     while true
-#        println("scheduling new failure")
         Δt = rand(Exponential(mtbf))
-#        println("failure after $(Δt)")
         yield(Timeout(sim, Δt))
         interrupt(proc, FAILURE)
     end
 end
 
 """
-    work(sim::Simulation, wu::Workunit, log=true)
+    do_work(sim::Simulation, wu::Workunit)
 
-let a Workunit work on its jobs
+auxiliary function for doing the work
 """
-function work(sim::Simulation, wu::Workunit, log::Simlog)
+function do_work(sim::Simulation, wu::Workunit)
+    job = currentjob(wu)
+    wu.t0 = now(sim)
+    if iszero(job.op_time)
+        job.op_time = opTime(wu.alpha, job.plan_time)
+    end
+    Δt = job.op_time*(1 - job.completion)
+    yield(Timeout(sim, Δt))
+    job.status = DONE
+end
+
+"""
+    do_multitask(sim::Simulation, wu::Workunit)
+
+take the job from the front of the wu.jobs queue, work on it for wu.timeslice,
+move it to the back and repeat doing
+"""
+function do_multitask(sim::Simulation, wu::Workunit, job::Job)
+    job = currentjob(wu)
+
+end
+
+"""
+    work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
+
+let a Workunit work on its jobs, this has to be started as a process
+on a Workunit variable.
+
+# Arguments
+- `sim::Simulation`: SimJulia Simulation variable
+- `wu::Workunit`: characteristics of Workunit
+- `log::Simlog`: which Log to log information to
+"""
+function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
 
     function setstatus(newstatus)
         lognow(sim, log)
@@ -61,7 +99,6 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
         job = dequeue!(wu.input)
         enqueue!(wu.jobs, job)
         job.status = PROGRESS
-        job
     end
 
     function finishjob(wu::Workunit)
@@ -72,38 +109,20 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
 
     status = Logvar(wu.name, IDLE)
     logvar2log(log, status)
-    t0 = 0.0
-    t1 = 0.0
-    Δt = 0.0
     oldstatus = IDLE
-    job = Job("","",0.0,0,0,"")
     while true
         try
             if getstatus(IDLE)           # get a new job
-                job = getnewjob(wu)
+                getnewjob(wu)
                 setstatus(WORKING)
-                Δt = opTime(wu, job)
-                t0 = now(sim)
-                t1 = 0.0
-                yield(Timeout(sim, Δt))
-                job.status = DONE
-                if isfull(wu.output)
-                    setstatus(BLOCKED)
-                else
-                    finishjob(wu)
-                end
             elseif getstatus(BLOCKED)      # output buffer is full
                 finishjob(wu)
-            elseif getstatus(WORKING)      # return to work after failure
-                Δt -= t1
-                t0 = now(sim)
-                @assert Δt > 0 "$(now(sim)): $(wu.name) Δt ≤ 0, Δt: $(Δt)"
-                yield(Timeout(sim, Δt))
-                job.status = DONE
-                if isfull(wu.output)
-                    setstatus(BLOCKED)
-                else
+            elseif getstatus(WORKING)
+                workfunc(sim, wu)
+                if !isfull(wu.output)
                     finishjob(wu)
+                else
+                    setstatus(BLOCKED)
                 end
             elseif getstatus(FAILURE)      # request repair
                 yield(Timeout(sim, repTime(wu)))
@@ -117,7 +136,9 @@ function work(sim::Simulation, wu::Workunit, log::Simlog)
                     oldstatus = status.value
                 end
                 if getstatus(WORKING)
-                    t1 += now(sim) - t0       # time worked into that job
+                    job = currentjob(wu)
+                    Δt = now(sim) - wu.t0   # time worked into that job
+                    job.completion += Δt/job.op_time
                 end
                 setstatus(FAILURE)
             else
@@ -133,6 +154,18 @@ end
             input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=100)
 
 create a new machine, start a process on it and return it
+
+# Arguments
+- `sim::Simulation`: SimJulia `Simulation` variable
+- `log::Simlog`: which `Simlog` to log information to
+- `name::AbstractString`: name of Machine (used for scheduling and logging)
+- `input::Int=1`: how big is the input buffer
+- `jobs::Int=1`: how big is the internal buffer
+- `output::Int=1`: how big is the output buffer
+- `mtbf::Number=0:` mean time between failures (0: no failures)
+- `mttr::Number=0:` mean time to repair
+- `alpha::Int=100:` Erlang shape factor for calculating the variation of
+                    work times (1: big, 100: small variation)
 """
 function machine(sim::Simulation, log::Simlog, name::AbstractString;
                  input::Int=1, jobs::Int=1, output::Int=1,
@@ -141,11 +174,8 @@ function machine(sim::Simulation, log::Simlog, name::AbstractString;
                 PFQueue(name*"-IN", Resource(sim, input), Queue(Job)),
                 PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
                 PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),
-                alpha, mtbf, mttr)
-#    @assert length(wu.input.res) == 0 && isempty(wu.input.queue) "input queue not empty"
-#    @assert length(wu.jobs.res) == 0 && isempty(wu.jobs.queue) "jobs queue not empty"
-#    @assert length(wu.output.res) == 0 && isempty(wu.output.queue) "output queue not empty"
-    proc = @process work(sim, wu, log)
+                alpha, mtbf, mttr, 0, 0.0)
+    proc = @process work(sim, wu, do_work, log)
     if mtbf > 0
         @process failure(sim, proc, mtbf)
     end
@@ -153,9 +183,37 @@ function machine(sim::Simulation, log::Simlog, name::AbstractString;
 end
 
 """
-    worker()
+    worker(sim::Simulation, log::Simlog, name::AbstractString;
+           mtbf::Number=0, mttr::Number=0,
+           input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=100)
+
+create a new worker, start a process on it and return it
+
+# Arguments
+- `sim::Simulation`: SimJulia `Simulation` variable
+- `log::Simlog`: which `Simlog` to log information to
+- `name::AbstractString`: name of Machine (used for scheduling and logging)
+- `input::Int=1`: how big is the input buffer
+- `jobs::Int=1`: how big is the internal buffer
+- `output::Int=1`: how big is the output buffer
+- `mtbf::Number=0:` mean time between failures (0: no failures)
+- `mttr::Number=0:` mean time to repair
+- `alpha::Int=1:` Erlang shape factor for calculating the variation of
+                work times (1: big, 100: small variation)
 """
-function worker()
+function worker(sim::Simulation, log::Simlog, name::AbstractString;
+                 input::Int=1, jobs::Int=1, output::Int=1,
+                 mtbf::Number=0, mttr::Number=0, alpha::Int=1)
+    wu = Workunit(name, MACHINE,
+                PFQueue(name*"-IN", Resource(sim, input), Queue(Job)),
+                PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
+                PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),
+                alpha, mtbf, mttr)
+    proc = @process work(sim, wu, log)
+    if mtbf > 0
+        @process failure(sim, proc, mtbf)
+    end
+    wu
 end
 
 """
