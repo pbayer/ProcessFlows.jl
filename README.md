@@ -2,7 +2,7 @@
 
 ### Simulation of Production Systems and Projects
 
-The goal of this repository is to provide software (in `Julia`), which is able to simulate the main characteristics of production systems and projects:
+The goal of this repository is to provide software (in `Julia`), which simulates the main characteristics of production systems and projects:
 
 - processing of orders
 - through different resources
@@ -10,11 +10,7 @@ The goal of this repository is to provide software (in `Julia`), which is able t
 - which take different and varying processing times and
 - are prone to failures.
 
-Sometimes several resources are available to process orders, sometimes orders have to compete for resources.
-
-Sometimes components or other prerequisites are required in order to process orders.
-
-So there are multiple dependencies which have to be simulated and be regarded in order to get the characteristics like
+Sometimes several resources are available for doing a job, sometimes orders have to compete for resources. Sometimes components or other prerequisites are required in order to process orders. There are multiple dependencies which have to be simulated in order to get characteristics like
 
 - utilization,
 - throughput,
@@ -30,8 +26,8 @@ All this has to be achieved by simple parametrization and by means of lists of
 
 which are the basis of production systems and orders or even projects usually handled by systems like SAP, ERP or project management software.
 
-### Status of Project (as of 07/2017)
+`Julia` (with `SimJulia`) is maturing and can provide for a really fast simulation library, capable to simulate also medium to large systems as in production, in automotive plants or in multiprojects.
 
-I did some simulations over the years for specific cases with different software systems like Simula, Modula-2, Vensim, Plantsim.
+### Status of Project (as of 08/2017)
 
-I now evaluated my new generic approach with a `Python` program. So have a preliminary proof of concept. Since the approach shall be able to simulate also medium to large systems it has to be able to run really fast. So – since [`Julia`](https://julialang.org) is maturing – I will (re-)implement it in Julia and a working prototype and some interesting results should be available in this repository by September 2017.
+PFlow is in early development. Things are coming together quite quickly and a working prototype and some interesting results should be available in this repository by September 2017.
