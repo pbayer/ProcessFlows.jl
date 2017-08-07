@@ -12,7 +12,7 @@ const WORKING = 1
 const FAILURE = 2
 const BLOCKED = 3
 
-mstatus = ("idle", "working", "failure", "blocked") 
+mstatus = ("idle", "working", "failure", "blocked")
 
 const OPEN = 0
 const PROGRESS = 1
@@ -30,6 +30,17 @@ mutable struct PFQueue
   queue::Queue
 end
 
+mutable struct Job
+  name::AbstractString
+  workunit::Array{String, 1}  # workunits capable to do the job
+  plan_time::Real
+  op_time::Real
+  completion::Real
+  status::Int64
+  batch_size::Int64
+  target::AbstractString     # name of target for transport jobs
+end
+
 mutable struct Workunit
   name::AbstractString
   kind::Int64
@@ -39,15 +50,8 @@ mutable struct Workunit
   alpha::Int64               # Erlang scale parameter
   mtbf::Number
   mttr::Number
-end
-
-mutable struct Job
-  name::AbstractString
-  wu::AbstractString
-  op_time::Real
-  status::Int64
-  batch_size::Int64
-  target::AbstractString     # name of target for transport jobs
+  timeslice::Number
+  t0::Real
 end
 
 mutable struct Order

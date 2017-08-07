@@ -11,7 +11,7 @@ import DataStructures: Queue, OrderedDict
 import Distributions: Erlang, Exponential
 import DataFrames: DataFrame, rename!
 
-export work, schedule_failure, machine, worker, transport, inspector, store
+export work, machine, worker
 export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE,
        PFQueue, Workunit, Job, Order
 export isempty, isfull, length, capacity, front, back, enqueue!,
