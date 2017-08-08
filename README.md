@@ -2,29 +2,27 @@
 
 ### Simulation of Production Systems and Projects
 
-The goal of this repository is to provide software (in `Julia`), which simulates the main characteristics of production systems and projects:
+`PFlow.jl` is a `Julia` library, which simulates the main physical characteristics of production systems and projects:
 
-- processing of orders
-- through different resources
-- in a predetermined sequence
-- which take different and varying processing times and
-- are prone to failures.
+- processing of orders,
+- in given sequences,
+- taking different and varying processing times and
+- through different workunits, 
+- which are prone to failures.
 
-Sometimes several resources are available for doing a job, sometimes orders have to compete for resources. Sometimes components or other prerequisites are required in order to process orders. There are multiple dependencies which have to be simulated in order to get characteristics like
+Often several resources are available for doing a job, sometimes orders have to compete for certain resources. Sometimes components or other prerequisites are required in order to process orders. Sometimes there are physical or policy limits to buffer sizes. Multitasking may be required or restricted … There are **multiple dependencies** which have to be simulated in order to get system level characteristics like
 
 - utilization,
 - throughput,
-- cost
+- cost.
 
-of production systems or project organizations.
-
-All this has to be achieved by simple parametrization and by means of lists of
+All this is achieved by simple parametrization and lists of
 
 - orders,
-- machines/resources,
+- workunits,
 - materials
 
-which are the basis of production systems and orders or even projects usually handled by systems like SAP, ERP or project management software.
+which are the basis of production systems or projects and are usually handled by MRP or project management systems.
 
 `Julia` (with `SimJulia`) is maturing and can provide for a really fast simulation library, capable to simulate also medium to large systems as in production, in automotive plants or in multiprojects.
 
