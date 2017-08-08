@@ -4,13 +4,13 @@
 
 `PFlow.jl` is a `Julia` library, which simulates the main physical characteristics of production systems and projects:
 
-- processing of orders,
+- processing of orders
 - in given sequences,
-- taking different and varying processing times and
+- taking different and varying processing times
 - through different workunits, 
 - which are prone to failures.
 
-Often several resources are available for doing a job, sometimes orders have to compete for certain resources. Sometimes components or other prerequisites are required in order to process orders. Sometimes there are physical or policy limits to buffer sizes. Multitasking may be required or restricted … There are **multiple dependencies** which have to be simulated in order to get system level characteristics like
+Often several resources are available for doing a job, sometimes orders have to compete for certain resources. Sometimes components or other prerequisites are required in order to process orders. Sometimes there are physical or policy limits to buffer sizes. Multitasking may be required or restricted … There are **multiple constraints and dependencies** which have to be simulated in order to get system level characteristics like
 
 - utilization,
 - throughput,
