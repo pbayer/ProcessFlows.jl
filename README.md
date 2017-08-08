@@ -2,7 +2,7 @@
 
 ### Simulation of Production Systems and Projects
 
-`PFlow.jl` is a `Julia` library, which simulates the main physical characteristics of production systems and projects:
+`PFlow.jl` is a `Julia` library, which allows to simulate the main physical characteristics of production systems and projects:
 
 - processing of orders
 - in given sequences,
