@@ -7,7 +7,7 @@ function scheduling(sim::Simulation, log::Simlog, wu::Workunit, delay::Number=0,
     if delay > 0
       yield(Timeout(sim, rand(Exponential(delay))))
     end
-    job = Job("Job"*string(i), [wu.name], randn()+5, 0.0, 0.0, OPEN, 1, "")
+    job = Job("", "Job"*string(i), [wu.name], randn()+5, 0.0, 0.0, OPEN, 1, "")
     enqueue!(wu.input, job)
     sched.value = job.name
     lognow(sim, log)

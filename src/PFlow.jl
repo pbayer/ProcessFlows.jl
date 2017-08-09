@@ -9,7 +9,7 @@ import DataStructures
 import Base: length, isempty, start, next, done
 import DataStructures: Queue, OrderedDict
 import Distributions: Erlang, Exponential
-import DataFrames: DataFrame, rename!
+import DataFrames: DataFrame, rename!, readtable
 
 export work, machine, worker
 export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE,
@@ -24,7 +24,8 @@ include("entities.jl")
 include("queues.jl")
 include("activities.jl")
 include("simviz.jl")
-#include("schedule.jl")
+include("simio.jl")
+include("schedule.jl")
 
 
 end

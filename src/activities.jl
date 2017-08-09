@@ -149,7 +149,8 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
 end
 
 """
-    machine(sim::Simulation, log::Simlog, name::AbstractString;
+    machine(sim::Simulation, log::Simlog,
+            name::AbstractString; description::AbstractString="",
             mtbf::Number=0, mttr::Number=0,
             input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=100)
 
@@ -159,6 +160,7 @@ create a new machine, start a process on it and return it
 - `sim::Simulation`: SimJulia `Simulation` variable
 - `log::Simlog`: which `Simlog` to log information to
 - `name::AbstractString`: name of Machine (used for scheduling and logging)
+- `description::AbstractString`: description, for informational purposes
 - `input::Int=1`: how big is the input buffer
 - `jobs::Int=1`: how big is the internal buffer
 - `output::Int=1`: how big is the output buffer
@@ -167,10 +169,11 @@ create a new machine, start a process on it and return it
 - `alpha::Int=100:` Erlang shape factor for calculating the variation of
                     work times (1: big, 100: small variation)
 """
-function machine(sim::Simulation, log::Simlog, name::AbstractString;
+function machine(sim::Simulation, log::Simlog,
+                 name::AbstractString; description::AbstractString="",
                  input::Int=1, jobs::Int=1, output::Int=1,
                  mtbf::Number=0, mttr::Number=0, alpha::Int=100)
-    wu = Workunit(name, MACHINE,
+    wu = Workunit(name, description, MACHINE,
                 PFQueue(name*"-IN", Resource(sim, input), Queue(Job)),
                 PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
                 PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),
@@ -183,7 +186,8 @@ function machine(sim::Simulation, log::Simlog, name::AbstractString;
 end
 
 """
-    worker(sim::Simulation, log::Simlog, name::AbstractString;
+    worker(sim::Simulation, log::Simlog,
+           name::AbstractString; description::AbstractString="",
            mtbf::Number=0, mttr::Number=0,
            input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=100)
 
@@ -193,6 +197,7 @@ create a new worker, start a process on it and return it
 - `sim::Simulation`: SimJulia `Simulation` variable
 - `log::Simlog`: which `Simlog` to log information to
 - `name::AbstractString`: name of Machine (used for scheduling and logging)
+- `description::AbstractString`: description, for informational purposes
 - `input::Int=1`: how big is the input buffer
 - `jobs::Int=1`: how big is the internal buffer
 - `output::Int=1`: how big is the output buffer
@@ -201,10 +206,11 @@ create a new worker, start a process on it and return it
 - `alpha::Int=1:` Erlang shape factor for calculating the variation of
                 work times (1: big, 100: small variation)
 """
-function worker(sim::Simulation, log::Simlog, name::AbstractString;
-                 input::Int=1, jobs::Int=1, output::Int=1,
-                 mtbf::Number=0, mttr::Number=0, alpha::Int=1)
-    wu = Workunit(name, MACHINE,
+function worker(sim::Simulation, log::Simlog,
+                name::AbstractString; description::AbstractString="",
+                input::Int=1, jobs::Int=1, output::Int=1,
+                mtbf::Number=0, mttr::Number=0, alpha::Int=1)
+    wu = Workunit(name, description, WORKER,
                 PFQueue(name*"-IN", Resource(sim, input), Queue(Job)),
                 PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
                 PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),

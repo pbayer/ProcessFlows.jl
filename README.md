@@ -7,7 +7,7 @@
 - processing of orders
 - in given sequences,
 - taking different and varying processing times
-- through different workunits, 
+- through different workunits,
 - which are prone to failures.
 
 Often several resources are available for doing a job, sometimes orders have to compete for certain resources. Sometimes components or other prerequisites are required in order to process orders. Sometimes there are physical or policy limits to buffer sizes. Multitasking may be required or restricted … There are **multiple constraints and dependencies** which have to be simulated in order to get system level characteristics like
@@ -19,7 +19,7 @@ Often several resources are available for doing a job, sometimes orders have to 
 All this is achieved by simple parametrization and lists of
 
 - orders,
-- workunits,
+- work units,
 - materials
 
 which are the basis of production systems or projects and are usually handled by MRP or project management systems.

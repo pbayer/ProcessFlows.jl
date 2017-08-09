@@ -25,33 +25,35 @@ const INSPECTOR = 3
 const STORE = 4
 
 mutable struct PFQueue
-  name::AbstractString
-  res::Resource
-  queue::Queue
+    name::AbstractString
+    res::Resource
+    queue::Queue
 end
 
 mutable struct Job
-  name::AbstractString
-  workunit::Array{String, 1}  # workunits capable to do the job
-  plan_time::Real
-  op_time::Real
-  completion::Real
-  status::Int64
-  batch_size::Int64
-  target::AbstractString     # name of target for transport jobs
+    order::AbstractString       # which order the job belongs to
+    name::AbstractString
+    workunit::Array{String, 1}  # workunits capable to do the job
+    plan_time::Real
+    op_time::Real
+    completion::Real
+    status::Int64
+    batch_size::Int64
+    target::AbstractString     # name of target for transport jobs
 end
 
 mutable struct Workunit
-  name::AbstractString
-  kind::Int64
-  input::PFQueue
-  jobs::PFQueue
-  output::PFQueue
-  alpha::Int64               # Erlang scale parameter
-  mtbf::Number
-  mttr::Number
-  timeslice::Number
-  t0::Real
+    name::AbstractString
+    description::AbstractString
+    kind::Int64
+    input::PFQueue
+    jobs::PFQueue
+    output::PFQueue
+    alpha::Int64               # Erlang scale parameter
+    mtbf::Number
+    mttr::Number
+    timeslice::Number
+    t0::Real
 end
 
 mutable struct Order
