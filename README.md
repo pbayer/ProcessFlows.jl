@@ -16,15 +16,18 @@ Often several resources are available for doing a job, sometimes orders have to 
 - throughput,
 - cost.
 
-All this is achieved by simple parametrization and lists of
+`PFlow` provides a model kit for basic entities of production systems or projects like
 
-- orders,
 - work units,
+- orders,
 - materials
 
-which are the basis of production systems or projects and are usually handled by MRP or project management systems.
+Those entities can be
 
-`Julia` (with `SimJulia`) is maturing and can provide for a really fast simulation library, capable to simulate also medium to large systems as in production, in automotive plants or in multiprojects.
+- combined and used in an simulation application
+- or collected and parametrized in lists (`csv`-files) and fed into `PFlow` in order to keep programming needs to a minimum.
+
+`Julia` (with `SimJulia`) is maturing and can provide for a really fast simulation library, capable to model and simulate even large systems as in production, in automotive plants or in multiprojects.
 
 ### Status of Project (as of 08/2017)
 
