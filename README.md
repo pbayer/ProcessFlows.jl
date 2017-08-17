@@ -22,12 +22,13 @@ to get system level characteristics like
 - throughput,
 - cost.
 
-`PFlow` takes a hybrid approach between specialization and generalization. It
-provides a model kit for basic entities of production systems or projects like
+`PFlow` takes a hybrid approach, generalizing only as much as needed and being
+specific as much as useful. It provides a model kit for basic entities of 
+production systems or projects like
 
 - work units,
 - orders,
-- materials
+- materials.
 
 Those entities can be
 
