@@ -32,31 +32,26 @@ end
 
 mutable struct Job
     order::AbstractString       # which order the job belongs to
-    name::AbstractString
-    workunit::Array{String, 1}  # workunits capable to do the job
-    plan_time::Real
-    op_time::Real
-    completion::Real
-    status::Int64
-    batch_size::Int64
-    target::AbstractString     # name of target for transport jobs
+    job::AbstractString         # name of the job
+    wus::Array{String,1}        # workunits capable to do the job
+    plan_time::Real             # the planned execution time
+    op_time::Real               # internal: the scheduled execution time
+    completion::Real            # internal: the job's completion rate
+    status::Int64               # the job's status
+    batch_size::Int64           # batch size
+    target::AbstractString      # name of target for transport jobs
 end
 
 mutable struct Workunit
-    name::AbstractString
-    description::AbstractString
-    kind::Int64
-    input::PFQueue
-    jobs::PFQueue
-    output::PFQueue
-    alpha::Int64               # Erlang scale parameter
-    mtbf::Number
-    mttr::Number
-    timeslice::Number
-    t0::Real
-end
-
-mutable struct Order
-  name::AbstractString
-  seq::OrderedDict{AbstractString, Job}
+    name::AbstractString        # name
+    description::AbstractString # descriptive string
+    kind::Int64                 # type of workunit
+    input::PFQueue              # input queue
+    jobs::PFQueue               # internal work in progress queue
+    output::PFQueue             # output queue
+    alpha::Int64                # Erlang scale parameter
+    mtbf::Number                # mean time between failures
+    mttr::Number                # mean time to repair
+    timeslice::Number           # length of timeslice for multitasking
+    t0::Real                    # internal: storage of last start time
 end

@@ -148,17 +148,21 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
     end # while
 end
 
-"""
-    machine(sim::Simulation, log::Simlog,
-            name::AbstractString; description::AbstractString="",
-            mtbf::Number=0, mttr::Number=0,
-            input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=100)
 
-create a new machine, start a process on it and return it
+
+"""
+    workunit(sim::Simulation, log::Simlog, kind::Int64,
+             name::AbstractString, description::AbstractString="",
+             input::Int=1, jobs::Int=1, output::Int=1,
+             mtbf::Number=0, mttr::Number=0, alpha::Int=100,
+             timeslice::Number=0)
+
+create a new workunit, start a process on it and return it
 
 # Arguments
 - `sim::Simulation`: SimJulia `Simulation` variable
 - `log::Simlog`: which `Simlog` to log information to
+- `kind::Int64`: which kind of Workunit to create
 - `name::AbstractString`: name of Machine (used for scheduling and logging)
 - `description::AbstractString`: description, for informational purposes
 - `input::Int=1`: how big is the input buffer
@@ -168,16 +172,18 @@ create a new machine, start a process on it and return it
 - `mttr::Number=0:` mean time to repair
 - `alpha::Int=100:` Erlang shape factor for calculating the variation of
                     work times (1: big, 100: small variation)
+- `timeslice::Number=0:` length of timeslice for multitasking, 0: no multitasking
 """
-function machine(sim::Simulation, log::Simlog,
-                 name::AbstractString; description::AbstractString="",
+function workunit(sim::Simulation, log::Simlog, kind::Int64,
+                 name::AbstractString, description::AbstractString="",
                  input::Int=1, jobs::Int=1, output::Int=1,
-                 mtbf::Number=0, mttr::Number=0, alpha::Int=100)
-    wu = Workunit(name, description, MACHINE,
+                 mtbf::Number=0, mttr::Number=0, alpha::Int=100,
+                 timeslice::Number=0)
+    wu = Workunit(name, description, kind,
                 PFQueue(name*"-IN", Resource(sim, input), Queue(Job)),
                 PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
                 PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),
-                alpha, mtbf, mttr, 0, 0.0)
+                alpha, mtbf, mttr, timeslice, 0.0)
     proc = @process work(sim, wu, do_work, log)
     if mtbf > 0
         @process failure(sim, proc, mtbf)
@@ -186,40 +192,51 @@ function machine(sim::Simulation, log::Simlog,
 end
 
 """
+    machine(sim::Simulation, log::Simlog,
+            name::AbstractString; description::AbstractString="",
+            input::Int=1, jobs::Int=1, output::Int=1,
+            mtbf::Number=0, mttr::Number=0, alpha::Int=100,
+            timeslice::Number=0)
+
+create a new machine, start a process on it and return it
+
+# Arguments
+see workunit
+"""
+function machine(sim::Simulation, log::Simlog,
+                name::AbstractString; description::AbstractString="",
+                input::Int=1, jobs::Int=1, output::Int=1,
+                mtbf::Number=0, mttr::Number=0, alpha::Int=1,
+                timeslice::Number=0)
+    workunit(name, description, MACHINE,
+             PFQueue(name*"-IN", Resource(sim, input), Queue(Job)),
+             PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
+             PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),
+             mtbf, mttr, alpha, timeslice)
+end
+
+"""
     worker(sim::Simulation, log::Simlog,
            name::AbstractString; description::AbstractString="",
            mtbf::Number=0, mttr::Number=0,
-           input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=100)
+           input::Int=1, jobs::Int=1, output::Int=1, alpha::Int=1,
+           timeslice::Number=0)
 
 create a new worker, start a process on it and return it
 
 # Arguments
-- `sim::Simulation`: SimJulia `Simulation` variable
-- `log::Simlog`: which `Simlog` to log information to
-- `name::AbstractString`: name of Machine (used for scheduling and logging)
-- `description::AbstractString`: description, for informational purposes
-- `input::Int=1`: how big is the input buffer
-- `jobs::Int=1`: how big is the internal buffer
-- `output::Int=1`: how big is the output buffer
-- `mtbf::Number=0:` mean time between failures (0: no failures)
-- `mttr::Number=0:` mean time to repair
-- `alpha::Int=1:` Erlang shape factor for calculating the variation of
-                work times (1: big, 100: small variation)
+see workunit
 """
 function worker(sim::Simulation, log::Simlog,
                 name::AbstractString; description::AbstractString="",
                 input::Int=1, jobs::Int=1, output::Int=1,
-                mtbf::Number=0, mttr::Number=0, alpha::Int=1)
-    wu = Workunit(name, description, WORKER,
-                PFQueue(name*"-IN", Resource(sim, input), Queue(Job)),
-                PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
-                PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),
-                alpha, mtbf, mttr)
-    proc = @process work(sim, wu, log)
-    if mtbf > 0
-        @process failure(sim, proc, mtbf)
-    end
-    wu
+                mtbf::Number=0, mttr::Number=0, alpha::Int=1,
+                timeslice::Number=0)
+    workunit(name, description, WORKER,
+             PFQueue(name*"-IN", Resource(sim, input), Queue(Job)),
+             PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Job)),
+             PFQueue(name*"-OUT", Resource(sim, output), Queue(Job)),
+             mtbf, mttr, alpha, timeslice)
 end
 
 """
