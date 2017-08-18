@@ -39,7 +39,7 @@ order to keep programming needs to a minimum.
 
 [`Julia`](https://julialang.org) (with [`SimJulia`](https://github.com/BenLauwens/SimJulia.jl))
 is maturing and can provide for a really fast simulation library, capable –
-together with `PFlow's` hybrid approach to model and simulate even large systems
+together with `PFlow's` hybrid approach – to model and simulate even large systems
 as in production, in automotive plants or in multiprojects.
 
 ### Status of Project (as of 08/2017)
