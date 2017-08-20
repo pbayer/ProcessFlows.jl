@@ -27,33 +27,32 @@ and move them to the next free work unit.
 """
 function scheduler(sim::Simulation,
                    resources::Array{Workunit, 1},
-                   orders::Dict{String, Array{Job,1}},
+                   products::Dict{UInt64, Array{Product,1}},
                    cycle::Number=1)
     while true
         for wu ∈ resources
-            if !isempty(wu.output)         # look for finished jobs
-                job = front(wu.output)
-                orderkey = job.order
-                order = orders[orderkey]   # get order
-                while j ∈ order.jobs       # get first open job
-                    if j.status == OPEN
-                        job = j
-                        break
-                    end
-                end
-                target = ""
-                len = 1e6
-                while w ∈ job.wus          # look for possible targets
-                    if !isfull(resources[w].input)    # get shortest input queue
-                        if length(resources[w].input) < len
-                            len = length(resources[w].input)
-                            target = w
+            if !isempty(wu.output)             # look for finished products/jobs
+                p = front(wu.output)           # get first product
+                if p.pjob < length(p.jobs)
+                    job = p.jobs[p.job+1]
+                    nextw = ""
+                    len = 1e6
+                    while w ∈ job.wus          # look for possible targets
+                        if !isfull(resources[w].input)    # get shortest input queue
+                            if length(resources[w].input) < len
+                                len = length(resources[w].input)
+                                nextw = w
+                            end
                         end
                     end
+                    if nextw ≠ ""             # found something
+                        enqueue!(resources[nextw].input, job)
+                        p.pjob += 1           # set pointer to next job
+                    end # if nextw
+                else
+                    p.status = FINISHED
+                    enqueue!(resources["WAREHOUSE"].input, p)
                 end
-                if target ≠ ""             # found something
-                    enqueue!(resources[target].input, job)
-                end # if target
             end # if !isempty
         end # for wu
         yield(Timeout(sim, cycle))

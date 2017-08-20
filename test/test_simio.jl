@@ -18,5 +18,11 @@ d = readOrders("../models/MOD01_orders.csv")
 sim = Simulation()
 sl = newlog()
 w = readWorkunits("../models/MOD01_workunits.csv", sim, sl)
+@test length(w) == 5
+@test typeof(w["MC01"].input) == PFlow.PFQueue
+@test typeof(w["MC02"].jobs) == PFlow.PFQueue
+@test typeof(w["MC03"].output) == PFlow.PFQueue
+@test w["MC04"].alpha == 100
+@test w["MC05"].mtbf == 500
 
 println("test_simio.jl completed")

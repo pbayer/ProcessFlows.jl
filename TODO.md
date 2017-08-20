@@ -12,8 +12,6 @@ it fit for general use in simulation of production and project environments:
 ## `schedule.jl`:
 
 - create transport jobs only if the input queue of the target is not full
-- implement **materials/products** (necessary for staged processes, where
-  products branch or combine)
 
 ## Documentation
 
