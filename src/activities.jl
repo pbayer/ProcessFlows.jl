@@ -101,13 +101,13 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
     function getnewjob(wu::Workunit)
         p = dequeue!(wu.input)
         enqueue!(wu.wip, p)
-        p.job[p.pjob].status = PROGRESS
+        p.jobs[p.pjob].status = PROGRESS
     end
 
     function finishjob(wu::Workunit)
         p = dequeue!(wu.wip)
         enqueue!(wu.output, p)
-        p.job[p.pjob].status = DONE
+        p.jobs[p.pjob].status = DONE
         setstatus(IDLE)
     end
 
@@ -202,7 +202,8 @@ end
             mtbf::Number=0, mttr::Number=0, alpha::Int=100,
             timeslice::Number=0)
 
-create a new machine, start a process on it and return it
+create a new machine, start a process on it and return it.
+wrapper function for workunit.
 
 # Arguments
 see workunit
@@ -212,11 +213,8 @@ function machine(sim::Simulation, log::Simlog,
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
                 timeslice::Number=0)
-    workunit(name, description, MACHINE,
-             PFQueue(name*"-IN", Resource(sim, input), Queue(Product)),
-             PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Product)),
-             PFQueue(name*"-OUT", Resource(sim, output), Queue(Product)),
-             mtbf, mttr, alpha, timeslice)
+    workunit(sim, log, MACHINE, name, description,
+             input, wip, output, mtbf, mttr, alpha, timeslice)
 end
 
 """
@@ -227,6 +225,7 @@ end
            timeslice::Number=0)
 
 create a new worker, start a process on it and return it
+wrapper function for workunit.
 
 # Arguments
 see workunit
@@ -236,11 +235,8 @@ function worker(sim::Simulation, log::Simlog,
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
                 timeslice::Number=0)
-    workunit(name, description, WORKER,
-             PFQueue(name*"-IN", Resource(sim, input), Queue(Product)),
-             PFQueue(name*"-JOB", Resource(sim, jobs), Queue(Product)),
-             PFQueue(name*"-OUT", Resource(sim, output), Queue(Product)),
-             mtbf, mttr, alpha, timeslice)
+    workunit(sim, log, WORKER, name, description,
+             input, wip, output, mtbf, mttr, alpha, timeslice)
 end
 
 """

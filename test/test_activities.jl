@@ -7,9 +7,11 @@ function scheduling(sim::Simulation, log::Simlog, wu::Workunit, delay::Number=0,
     if delay > 0
       yield(Timeout(sim, rand(Exponential(delay))))
     end
-    job = Job("", "Job"*string(i), [wu.name], randn()+5, 0.0, 0.0, OPEN, 1, "")
-    enqueue!(wu.input, job)
-    sched.value = job.name
+    item = 123000+i
+    job = Job(item, "Job"*string(i), [wu.name], randn()+5, 0.0, 0.0, OPEN, 1, "")
+    pro = Product(123, item, "test", "testproduct", "testorder", [job], 1, OPEN)
+    enqueue!(wu.input, pro)
+    sched.value = pro.item
     lognow(sim, log)
   end
   sched.value = ""
@@ -22,8 +24,8 @@ function delivering(sim::Simulation, log::Simlog, wu::Workunit, delay::Number=0)
     if delay > 0
       yield(Timeout(sim, rand(Exponential(delay))))
     end
-    job = dequeue!(wu.output)
-    done.value = job.name
+    pro = dequeue!(wu.output)
+    done.value = pro.item
     lognow(sim, log)
   end
 end
@@ -41,10 +43,10 @@ jl = log2df(jl)
 
 @test length(ml[:test]) == 40
 @test length(jl[:done]) == 20
-@test length(jl[jl[:done] .!= "", :done]) == 10 # ten jobs were finished
+@test length(jl[jl[:done] .!= "", :done]) == 10 # ten products were finished
 @test length(ml[ml[:test] .== 1, :test]) == 20 # twenty times the machine changed status
-@test round(ml[:time][40], 4) == 50.1265
-@test round(jl[:time][20], 4) == 50.1265
+@test round(ml[:time][40], 4) == 43.4712
+@test round(jl[:time][20], 4) == 43.4712
 
 println("1st test passed")
 
@@ -62,10 +64,10 @@ jl = log2df(jl)
 
 @test length(ml[:test]) == 41
 @test length(jl[:done]) == 20
-@test length(Set(jl[:done])) == 11 # all ten jobs were finished
+@test length(Set(jl[:done])) == 11 # all ten products were finished
 @test length(ml[ml[:test] .== 1, :test])/2 == 10 # ten times the machine got working
-@test round(ml[:time][40], 4) == 140.6793
-@test round(jl[:time][20], 4) == 140.6793
+@test round(ml[:time][40], 4) == 181.2260
+@test round(jl[:time][20], 4) == 181.2260
 
 println("2nd test passed")
 
@@ -81,13 +83,13 @@ run(sim, 200)
 ml = log2df(ml)
 jl = log2df(jl)
 
-@test length(ml[:test]) == 43
+@test length(ml[:test]) == 45
 @test length(jl[:done]) == 20
-@test length(Set(jl[:done])) == 11 # all ten jobs were finished
+@test length(Set(jl[:done])) == 11 # all ten products were finished
 @test length(ml[ml[:test] .== 1, :test])/2 == 10 # ten times the machine got working
-@test length(ml[:test][ml[:test] .== 3])/2 == 1  # one times the machine was blocked
-@test round(ml[:time][43], 4) == 95.4489        # now the machine finished
-@test round(jl[:time][20], 4) == 95.4489        # now the last job was delivered
+@test length(ml[:test][ml[:test] .== 3])/2 == 2  # two times the machine was blocked
+@test round(ml[:time][45], 4) == 94.8730        # now the machine finished
+@test round(jl[:time][20], 4) == 94.8730        # now the last product was delivered
 
 println("3rd test passed")
 
@@ -105,12 +107,12 @@ jl = log2df(jl)
 
 @test length(ml[:test]) == 75
 @test length(jl[:done]) == 20
-@test length(Set(jl[:done])) == 11 # all ten jobs were finished
-@test length(ml[ml[:test] .== 2, :test])/2 == 10 # ten times the machine failed
-@test length(ml[ml[:test] .== 1, :test])/2 == 11 # eleven times the machine got working
+@test length(Set(jl[:done])) == 11 # all ten products were finished
+@test length(ml[ml[:test] .== 2, :test])/2 == 9 # nine times the machine failed
+@test length(ml[ml[:test] .== 1, :test])/2 == 12 # twelve times the machine got working
 @test length(ml[:test][ml[:test] .== 3])/2 == 1  # one times the machine was blocked
-@test round(ml[:time][75], 4) == 183.7237        # now the machine finished
-@test round(jl[:time][20], 4) == 88.3667        # now the last job was delivered
+@test round(ml[:time][75], 4) == 198.8735        # now the machine finished
+@test round(jl[:time][20], 4) == 92.9175        # now the last product was delivered
 
 println("4th test passed")
 

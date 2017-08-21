@@ -35,13 +35,13 @@ front(q::PFQueue) = DataStructures.front(q.queue)
 back(q::PFQueue) = DataStructures.back(q.queue)
 
 """
-    enqueue!(q::PFQueue, x)
+    enqueue!(q::PFQueue, p::Product)
 
 wait for a place, enqueue x at the end of q.queue and return q.queue
 """
-function enqueue!(q::PFQueue, x::Job)
+function enqueue!(q::PFQueue, p::Product)
     yield(Put(q.res, 1))
-    DataStructures.enqueue!(q.queue, x)
+    DataStructures.enqueue!(q.queue, p)
 end
 
 """
