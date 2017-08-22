@@ -32,25 +32,25 @@ mutable struct PFQueue
 end
 
 mutable struct Job
-    item::UInt64                # which item the job belongs to
+    item::Int                   # which item the job belongs to
     job::AbstractString         # name of the job
     wus::Array{String,1}        # workunits capable to do the job
     plan_time::Real             # the planned execution time
     op_time::Real               # internal: the scheduled execution time
     completion::Real            # internal: the job's completion rate
-    status::Int64               # the job's status
-    batch_size::Int64           # batch size
+    status::Int                 # the job's status
+    batch_size::Int             # batch size
     target::AbstractString      # name of target for transport jobs
 end
 
 mutable struct Workunit
     name::AbstractString        # name
     description::AbstractString # descriptive string
-    kind::Int64                 # type of workunit
+    kind::Int                   # type of workunit
     input::PFQueue              # input queue
     wip::PFQueue                # internal work in progress queue
     output::PFQueue             # output queue
-    alpha::Int64                # Erlang scale parameter
+    alpha::Int                  # Erlang scale parameter
     mtbf::Number                # mean time between failures
     mttr::Number                # mean time to repair
     timeslice::Number           # length of timeslice for multitasking
@@ -58,12 +58,21 @@ mutable struct Workunit
 end
 
 mutable struct Product
-    code::UInt64                # product code
-    item::UInt64                # item number - this must be unique !!
+    code::Int                   # product code
+    item::Int                   # item number - this must be unique !!
     name::AbstractString        # product name
     description::AbstractString # descriptive string
     order::AbstractString       # order name
     jobs::Array{Job,1}          # sequence of jobs
-    pjob::UInt64                # pointer to job
-    status::Int64               # processing status
+    pjob::Int                   # pointer to job
+    status::Int                 # processing status
+end
+
+mutable struct Planned
+    code::Int                   # product code
+    demand::Int                 # how many products must be produced
+    item_offset::Int            # offset for item numbering
+    name::AbstractString        # product name
+    description::AbstractString # descriptive string
+    order::AbstractString       # order name
 end

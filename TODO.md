@@ -8,10 +8,12 @@ it fit for general use in simulation of production and project environments:
 - implement **transport**
 - implement **multitasking** (a central feature of projects)
 - implement **batch processing**
+- implement **store**
 
 ## `schedule.jl`:
 
 - create transport jobs only if the input queue of the target is not full
+- implement priority scheduling
 
 ## Documentation
 

@@ -13,8 +13,8 @@ import DataFrames: DataFrame, rename!, readtable, nrow, isna
 
 export work, workunit, machine, worker, transport
 export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE,
-       PFQueue, Workunit, Job, Product
-export scheduler
+       PFQueue, Workunit, Job, Product, Planned
+export Mps, Plan, Orders, create_mps, scheduler, source, sink, start_scheduling
 export readWorkunits, readOrders
 export isempty, isfull, length, capacity, front, back, enqueue!,
        dequeue!, start, next, done
