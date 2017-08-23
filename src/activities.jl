@@ -102,6 +102,7 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
         p = dequeue!(wu.input)
         enqueue!(wu.wip, p)
         p.jobs[p.pjob].status = PROGRESS
+        call_scheduler()
     end
 
     function finishjob(wu::Workunit)
@@ -109,6 +110,7 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
         enqueue!(wu.output, p)
         p.jobs[p.pjob].status = DONE
         setstatus(IDLE)
+        call_scheduler()
     end
 
     status = Logvar(wu.name, IDLE)
@@ -156,7 +158,7 @@ end
 
 """
     workunit(sim::Simulation, log::Simlog, kind::Int64,
-             name::AbstractString, description::AbstractString="",
+             name::String, description::String="",
              input::Int=1, wip::Int=1, output::Int=1,
              mtbf::Number=0, mttr::Number=0, alpha::Int=100,
              timeslice::Number=0)
@@ -167,8 +169,8 @@ create a new workunit, start a process on it and return it
 - `sim::Simulation`: SimJulia `Simulation` variable
 - `log::Simlog`: which `Simlog` to log information to
 - `kind::Int64`: which kind of Workunit to create
-- `name::AbstractString`: name of Machine (used for scheduling and logging)
-- `description::AbstractString`: description, for informational purposes
+- `name::String`: name of Machine (used for scheduling and logging)
+- `description::String`: description, for informational purposes
 - `input::Int=1`: how big is the input buffer
 - `wip::Int=1`: how big is the internal wip buffer
 - `output::Int=1`: how big is the output buffer
@@ -179,7 +181,7 @@ create a new workunit, start a process on it and return it
 - `timeslice::Number=0:` length of timeslice for multitasking, 0: no multitasking
 """
 function workunit(sim::Simulation, log::Simlog, kind::Int64,
-                 name::AbstractString, description::AbstractString="",
+                 name::String, description::String="",
                  input::Int=1, wip::Int=1, output::Int=1,
                  mtbf::Number=0, mttr::Number=0, alpha::Int=100,
                  timeslice::Number=0)
@@ -197,7 +199,7 @@ end
 
 """
     machine(sim::Simulation, log::Simlog,
-            name::AbstractString; description::AbstractString="",
+            name::String; description::String="",
             input::Int=1, wip::Int=1, output::Int=1,
             mtbf::Number=0, mttr::Number=0, alpha::Int=100,
             timeslice::Number=0)
@@ -209,7 +211,7 @@ wrapper function for workunit.
 see workunit
 """
 function machine(sim::Simulation, log::Simlog,
-                name::AbstractString; description::AbstractString="",
+                name::String; description::String="",
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
                 timeslice::Number=0)
@@ -219,7 +221,7 @@ end
 
 """
     worker(sim::Simulation, log::Simlog,
-           name::AbstractString; description::AbstractString="",
+           name::String; description::String="",
            mtbf::Number=0, mttr::Number=0,
            input::Int=1, wip::Int=1, output::Int=1, alpha::Int=1,
            timeslice::Number=0)
@@ -231,7 +233,7 @@ wrapper function for workunit.
 see workunit
 """
 function worker(sim::Simulation, log::Simlog,
-                name::AbstractString; description::AbstractString="",
+                name::String; description::String="",
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
                 timeslice::Number=0)

@@ -8,14 +8,14 @@
 # --------------------------------------------
 
 """
-    readWorkunits(file::AbstractString)
+    readWorkunits(file::String, sim::Simulation, log::Simlog) :: Workunits
 
 read the workunits from a .csv file, start the processes
 and return a Dict of the workunits.
 """
-function readWorkunits(file::AbstractString, sim::Simulation, log::Simlog)
+function readWorkunits(file::String, sim::Simulation, log::Simlog) :: Workunits
     t = readtable(file)
-    d = Dict{String, Workunit}()
+    d = Workunits()
     for i ∈ 1:nrow(t)
         wu = workunit(sim, log, t[i,3], t[i,1], t[i,2], t[i,4], t[i,5], t[i,6],
                       t[i,8], t[i,9], t[i,7], t[i,10])
@@ -25,11 +25,11 @@ function readWorkunits(file::AbstractString, sim::Simulation, log::Simlog)
 end
 
 """
-    readOrders(file::AbstractString)
+    readOrders(file::String)
 
 read the orders from a .csv file and return a Dict of the orders/jobs
 """
-function readOrders(file::AbstractString)
+function readOrders(file::String)
     t = readtable(file)
     d = Orders()
     for o ∈ Set(t[:order])

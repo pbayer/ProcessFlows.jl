@@ -15,4 +15,8 @@ p123 = [p for p ∈ mps if p.code == 123]
 p456 = [p for p ∈ mps if p.code == 456]
 @test length(p456) == 18
 
+mps = create_mps([plan1, plan2], d, false) # not leveled
+
+@test length(mps) == 25
+
 println("test create_mps finished")

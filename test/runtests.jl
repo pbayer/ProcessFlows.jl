@@ -2,6 +2,7 @@ tests = ["activities",
          "entities",
          "queues",
          "schedule",
+         "simio",
          "simlog",
         ]
 
