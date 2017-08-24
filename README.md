@@ -2,12 +2,14 @@
 
 ### Simulation of Production Systems and Projects
 
-`PFlow.jl` is a [`Julia`](https://julialang.org) library, which allows to
+`PFlow.jl` is a [`Julia`](https://julialang.org) library, which can
 simulate the main physical characteristics of production systems and projects.
-You can find the main assumptions by `PFlow` in my notebook [03 Simulation of Production Systems](http://localhost:8888/notebooks/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb).
+
+My notebook [03 Simulation of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb) describes the main assumptions regarding production systems, which are implemented
+in `Pflow`. In [04 Variation in Projects and Production](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/04%20Variation%20in%20Projects%20and%20Production.ipynb), I describe `PFlow's` treatment of variation.
 
 `PFlow` takes a hybrid approach, generalizing only as much as needed and remaining
-true to physical characteristics as much as possible. So implementation can
+true to physical characteristics as much as possible. So the implementation can
 be without much overhead. It provides a model kit for basic entities of production
 systems or projects like
 
@@ -17,7 +19,7 @@ systems or projects like
 
 Those entities can be
 
-- combined and used in an simulation application or
+- combined and used in a simulation application or
 - collected and parametrized in lists (`.csv`-files) which are read by `PFlow` in
 order to keep programming needs to a minimum.
 
