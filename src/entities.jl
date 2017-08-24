@@ -39,6 +39,9 @@ mutable struct Job
     op_time::Real               # internal: the scheduled execution time
     completion::Real            # internal: the job's completion rate
     status::Int                 # the job's status
+    wu::String                  # on which workunit is the job done
+    start_time::Real            # when was it started
+    end_time::Real              # when was it finished
     batch_size::Int             # batch size
     target::String              # name of target for transport jobs
 end

@@ -20,3 +20,17 @@ mps = create_mps([plan1, plan2], d, false) # not leveled
 @test length(mps) == 25
 
 println("test create_mps finished")
+
+srand(2345)  # seed random number generator for reproducibility
+sim = Simulation()
+sl = newlog()
+wus = readWorkunits("../models/MOD01_workunits.csv", sim, sl)
+mps = create_mps([plan1, plan2], d)
+out = Products()
+start_scheduling(sim, wus, mps, out)
+run(sim, 150)
+
+@test length(mps) == 0
+@test length(out) == 25
+
+println("test scheduling finished")

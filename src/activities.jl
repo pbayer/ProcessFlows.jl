@@ -102,13 +102,15 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
         p = dequeue!(wu.input)
         enqueue!(wu.wip, p)
         p.jobs[p.pjob].status = PROGRESS
+        p.jobs[p.pjob].start_time = now(sim)
         call_scheduler()
     end
 
     function finishjob(wu::Workunit)
         p = dequeue!(wu.wip)
-        enqueue!(wu.output, p)
         p.jobs[p.pjob].status = DONE
+        p.jobs[p.pjob].end_time = now(sim)
+        enqueue!(wu.output, p)
         setstatus(IDLE)
         call_scheduler()
     end

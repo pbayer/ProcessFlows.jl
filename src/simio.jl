@@ -29,18 +29,19 @@ end
 
 read the orders from a .csv file and return a Dict of the orders/jobs
 """
-function readOrders(file::String)
+function readOrders(file::String) :: Orders
     t = readtable(file)
     d = Orders()
-    for o ∈ Set(t[:order])
-        t1 = t[t[:order] .== o, :]
+    for ord ∈ Set(t[:order])
+        t1 = t[t[:order] .== ord, :]
         for i ∈ 1:nrow(t1)
             job = Job(0, t1[i,2], split(t1[i,3],","), t1[i,4], 0.0, 0.0,
-                      OPEN, t1[i,5], isna(t1[i,6]) ? "" : t1[i,6])
-            if haskey(d, o)
-                push!(d[o], job)
+                      OPEN, "", 0.0, 0.0,
+                      t1[i,5], isna(t1[i,6]) ? "" : t1[i,6])
+            if haskey(d, ord)
+                push!(d[ord], job)
             else
-                d[o] = [job]
+                d[ord] = [job]
             end
         end
     end

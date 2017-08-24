@@ -74,28 +74,30 @@ function scheduler(sim::Simulation, wus::Workunits)
     global sched
     while true
         for wu ∈ values(wus)
-            while !isempty(wu.output)             # look for finished products/jobs
-                p = front(wu.output)           # get first product
-                if p.pjob < length(p.jobs)     # are there yet open jobs?
-                    job = p.jobs[p.job+1]
+            while !isempty(wu.output)                  # look for ready products
+                p = front(wu.output)                   # get first product
+                if p.pjob < length(p.jobs)             # are there yet open jobs?
+                    job = p.jobs[p.pjob+1]
                     nextw = ""
                     len = 1e6
-                    while target ∈ job.wus          # look for possible targets
-                        if !isfull(wus[target].input)    # get shortest input queue
+                    for target ∈ job.wus               # look for possible targets
+                        if !isfull(wus[target].input)  # get shortest input queue
                             if length(wus[target].input) < len
                                 len = length(wus[target].input)
                                 nextw = target
                             end
                         end
                     end
-                    if nextw ≠ ""             # found something
+                    if nextw ≠ ""                      # found something
                         p = dequeue!(wu.output)
                         enqueue!(wus[nextw].input, p)
-                        p.pjob += 1           # set pointer to next job
+                        p.pjob += 1                    # set pointer to next job
+                        p.jobs[p.pjob].wu = nextw      # trace workunit
                     else
-                        break                 # cannot process further
+                        break                          # cannot process further
                     end # if nextw
-                else
+                else                                   # product has no open jobs
+                    p = dequeue!(wu.output)
                     p.status = FINISHED
                     enqueue!(wus["OUT"].input, p)
                 end
@@ -146,11 +148,11 @@ function sink(sim::Simulation, wu::Workunit, output::Products)
 end
 
 """
-    start_scheduling(sim::Simulation, wus::Workunits, mps::Products)
+    start_scheduling(sim::Simulation, wus::Workunits, mps::Products, output::Products)
 
 get the MPS and a production system and start source, sink and scheduling
 """
-function start_scheduling(sim::Simulation, wus::Workunits, mps::Products)
+function start_scheduling(sim::Simulation, wus::Workunits, mps::Products, output::Products)
     global sched = Resource(sim, 1)
     w1 = Workunit("IN", "Input", STORE,
                   PFQueue("DUMMY", Resource(sim, 1), Queue(Product)),
@@ -165,7 +167,7 @@ function start_scheduling(sim::Simulation, wus::Workunits, mps::Products)
                 PFQueue("DUMMY", Resource(sim, 10), Queue(Product)),
                 1000, 0, 0, 0, 0.0)
     wus["OUT"] = w2
-    @process sink(sim, w2)
+    @process sink(sim, w2, output)
     @process scheduler(sim, wus)
 end
 

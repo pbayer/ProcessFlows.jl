@@ -8,7 +8,7 @@
 # --------------------------------------------
 
 function isempty(q::PFQueue)
-    @assert length(q.queue) == q.res.level "isempty: PFQueue not synchronized"
+#    @assert length(q.queue) == q.res.level "isempty: PFQueue $(q.name) not synchronized"
     DataStructures.isempty(q.queue)
 end
 
@@ -18,7 +18,7 @@ end
 check, if a PFQueue is full
 """
 function isfull(q::PFQueue)
-    @assert length(q.queue) == q.res.level "isfull: PFQueue not synchronized"
+#    @assert length(q.queue) == q.res.level "isfull: PFQueue $(q.name) not synchronized"
     length(q.queue) ≥ q.res.capacity
 end
 
@@ -40,7 +40,11 @@ back(q::PFQueue) = DataStructures.back(q.queue)
 wait for a place, enqueue x at the end of q.queue and return q.queue
 """
 function enqueue!(q::PFQueue, p::Product)
-    yield(Put(q.res, 1))
+    if length(q.queue) < q.res.capacity
+        Put(q.res, 1)
+    else
+        yield(Put(q.res, 1))
+    end
     DataStructures.enqueue!(q.queue, p)
 end
 
@@ -50,7 +54,11 @@ end
 wait for something in the queue, remove it from its front and return it.
 """
 function dequeue!(q::PFQueue)
-    yield(Get(q.res, 1))
+    if length(q.queue) > 0
+        Get(q.res, 1)
+    else
+        yield(Get(q.res, 1))
+    end
     DataStructures.dequeue!(q.queue)
 end
 
