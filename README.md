@@ -4,13 +4,14 @@
 
 `PFlow.jl` is a [`Julia`](https://julialang.org) library, which can
 simulate the main physical characteristics of production systems and projects.
-Its meaning is **product flow**.
+Its meaning is **product flow**. Depending on the domain, in which it is used
+it can mean also production flow, project flow, process flow or even patient
+flow … Who knows?
 
 ### Notebooks
 
-- [03 Simulation of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb) describes the main assumptions regarding production systems, which are implemented
-in `Pflow`.
-- In [04 Variation in Projects and Production](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/04%20Variation%20in%20Projects%20and%20Production.ipynb), I describe `PFlow's` treatment of variation.
+- [03 Simulation of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb) describes the main assumptions implemented in `Pflow`.
+- [04 Variation in Projects and Production](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/04%20Variation%20in%20Projects%20and%20Production.ipynb) describes, how `PFlow` treats variation.
 - [05 Parametrization of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/05%20Parametrization%20of%20Production%20Systems.ipynb) describes, why it is possible to parametrize simulations of
 production systems and projects by simple lists.
 
@@ -22,7 +23,7 @@ production systems and projects by simple lists.
 - orders/jobs,
 - materials/products.
 
-Those entities are then collected and parametrized in lists (`.csv`-files) which
+Those entities are collected and described in lists (`.csv`-files) which
 are read by `PFlow` in order to keep programming needs to a minimum.
 
 `PFlow` will contain utility functions to run simulations and to visualize,
