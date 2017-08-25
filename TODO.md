@@ -18,6 +18,10 @@ it fit for general use in simulation of production and project environments:
 
 ### Documentation
 
+- [ ] API Documentation
+- [ ] Outline
+- [ ] Examples
+
 ### Stats and visualization: `simviz.jl`
 
 - [ ] lead times
@@ -27,5 +31,5 @@ it fit for general use in simulation of production and project environments:
 
 ### Convenience
 
-- [ ] `simlog.jl`: logging variable as `view`
+- [ ] templates for simulation
 - [ ] saving and loading simulation runs
