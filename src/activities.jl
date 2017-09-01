@@ -113,6 +113,7 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function)
     end
 
     status = IDLE
+    push!(wu.log, PFlog(now(sim), status))
     oldstatus = IDLE
     while true
         try

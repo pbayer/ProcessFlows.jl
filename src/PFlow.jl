@@ -3,7 +3,7 @@ Main module for PFlow.jl, a Julia simulator for production systems and projects
 """
 module PFlow
 
-using SimJulia, Plots
+using SimJulia, PyPlot
 
 import DataStructures
 import Base: length, isempty, start, next, done
@@ -19,11 +19,13 @@ export Mps, Plan, Orders, Products,
 export readWorkunits, readOrders
 export isempty, isfull, length, capacity, front, back, enqueue!,
        dequeue!, start, next, done
-export mload
+export wulog, productlog, queuelog
+export load, loadstep, flow, lead_time, queue_len
 
 include("entities.jl")
 include("queues.jl")
 include("activities.jl")
+include("eval.jl")
 include("viz.jl")
 include("io.jl")
 include("schedule.jl")

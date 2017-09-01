@@ -10,16 +10,45 @@
 """
     load(wus::Workunits, w::Array{String, 1}=[])
 
-draw a load diagram of the work units
+draw a load step diagram of the work units
 """
-function load(wus::Workunits, w::Array{String, 1}=[])
+function loadstep(wus::Workunits, w::Array{String,1})
+    if length(w) == 0
+        w = collect(keys(wus))
+    end
+    sort!(w)
+    for i ∈ 1:length(w)
+        wu = wus[w[i]]
+        if length(wu.log) > 0
+            t, s = wulog(wu)
+            step(t, s, where="post", label=wu.name, lw=1)
+        end
+    end
+    legend()
+    xlabel("time")
+    ylabel("status")
+    title("Workload")
 end
+
+loadstep(wus::Workunits, w::String) = load(wus, [w])
+loadstep(wus::Workunits) = load(wus, String[])
+
+"""
+    load(wus::Workunits, w::Array{String, 1}=[])
+
+draw a load diagram of the work units over time
+"""
+function load(wus::Workunits, w::Array{String,1})
+end
+
+load(wus::Workunits, w::String) = load(wus, [w])
+load(wus::Workunits) = load(wus, String[])
 
 function flow()
 end
 
-function leadtime()
+function lead_time()
 end
 
-function queuelen()
+function queue_len()
 end
