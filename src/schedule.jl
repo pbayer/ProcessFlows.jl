@@ -41,7 +41,7 @@ function create_mps(plan::Plan, order::Orders, leveled::Bool=true) :: Products
                         job.item = item
                     end
                     p = Product(pl.code, item, pl.name, pl.description,
-                                pl.order, jobs, 0, OPEN)
+                                pl.order, jobs, 0, OPEN, 0.0, 0.0)
                     push!(mps, p)
                 end
                 index[i] = k + 1
@@ -56,7 +56,7 @@ function create_mps(plan::Plan, order::Orders, leveled::Bool=true) :: Products
                     job.item = item
                 end
                 p = Product(pl.code, item, pl.name, pl.description,
-                            pl.order, jobs, 0, OPEN)
+                            pl.order, jobs, 0, OPEN, 0.0, 0.0)
                 push!(mps, p)
             end
         end
@@ -122,6 +122,7 @@ release products into a production system
 function source(sim::Simulation, wu::Workunit, mps::Products)
     while length(mps) > 0
         p = shift!(mps)
+        p.start_time = now(sim)
         enqueue!(wu.output, p)
         call_scheduler()
     end
@@ -143,6 +144,7 @@ collect finished products from a production system
 function sink(sim::Simulation, wu::Workunit, output::Products)
     while true
         p = dequeue!(wu.input)
+        p.end_time = now(sim)
         push!(output, p)
     end
 end
@@ -155,17 +157,17 @@ get the MPS and a production system and start source, sink and scheduling
 function start_scheduling(sim::Simulation, wus::Workunits, mps::Products, output::Products)
     global sched = Resource(sim, 1)
     w1 = Workunit("IN", "Input", STORE,
-                  PFQueue("DUMMY", Resource(sim, 1), Queue(Product)),
-                  PFQueue("DUMMY", Resource(sim, 1), Queue(Product)),
-                  PFQueue("INPUT", Resource(sim, 10), Queue(Product)),
-                  1000, 0, 0, 0, 0.0)
+                  PFQueue("DUMMY", Resource(sim, 1), Queue(Product), Array{PFlog{Int}, 1}[]),
+                  PFQueue("DUMMY", Resource(sim, 1), Queue(Product), Array{PFlog{Int}, 1}[]),
+                  PFQueue("INPUT", Resource(sim, 10), Queue(Product), Array{PFlog{Int}, 1}[]),
+                  1000, 0, 0, 0, 0.0, Array{PFlog{Int}, 1}[])
     wus["IN"] = w1
     @process source(sim, w1, mps)
     w2 = Workunit("OUT", "Output", STORE,
-                PFQueue("OUTPUT", Resource(sim, 10), Queue(Product)),
-                PFQueue("DUMMY", Resource(sim, 1), Queue(Product)),
-                PFQueue("DUMMY", Resource(sim, 10), Queue(Product)),
-                1000, 0, 0, 0, 0.0)
+                PFQueue("OUTPUT", Resource(sim, 10), Queue(Product), Array{PFlog{Int}, 1}[]),
+                PFQueue("DUMMY", Resource(sim, 1), Queue(Product), Array{PFlog{Int}, 1}[]),
+                PFQueue("DUMMY", Resource(sim, 10), Queue(Product), Array{PFlog{Int}, 1}[]),
+                1000, 0, 0, 0, 0.0, Array{PFlog{Int}, 1}[])
     wus["OUT"] = w2
     @process sink(sim, w2, output)
     @process scheduler(sim, wus)

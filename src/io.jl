@@ -13,11 +13,11 @@
 read the workunits from a .csv file, start the processes
 and return a Dict of the workunits.
 """
-function readWorkunits(file::String, sim::Simulation, log::Simlog) :: Workunits
+function readWorkunits(file::String, sim::Simulation) :: Workunits
     t = readtable(file)
     d = Workunits()
     for i ∈ 1:nrow(t)
-        wu = workunit(sim, log, t[i,3], t[i,1], t[i,2], t[i,4], t[i,5], t[i,6],
+        wu = workunit(sim, t[i,3], t[i,1], t[i,2], t[i,4], t[i,5], t[i,6],
                       t[i,8], t[i,9], t[i,7], t[i,10])
         d[t[i,1]] = wu
     end

@@ -86,17 +86,14 @@ on a Workunit variable.
 # Arguments
 - `sim::Simulation`: SimJulia Simulation variable
 - `wu::Workunit`: characteristics of Workunit
-- `log::Simlog`: which Log to log information to
+- `workfunc::Function`: function describing the operation
 """
-function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
+function work(sim::Simulation, wu::Workunit, workfunc::Function)
 
     function setstatus(newstatus)
-        lognow(sim, log)
-        status.value = newstatus
-        lognow(sim, log)
+        push!(wu.log, PFlog(now(sim), newstatus))
+        status = newstatus
     end
-
-    getstatus(s) = status.value == s
 
     function getnewjob(wu::Workunit)
         p = dequeue!(wu.input)
@@ -115,35 +112,34 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
         call_scheduler()
     end
 
-    status = Logvar(wu.name, IDLE)
-    logvar2log(log, status)
+    status = IDLE
     oldstatus = IDLE
     while true
         try
-            if getstatus(IDLE)           # get a new job
+            if status == IDLE           # get a new job
                 getnewjob(wu)
                 setstatus(WORKING)
-            elseif getstatus(BLOCKED)      # output buffer is full
+            elseif status == BLOCKED      # output buffer is full
                 finishjob(wu)
-            elseif getstatus(WORKING)
+            elseif status == WORKING
                 workfunc(sim, wu)
                 if !isfull(wu.output)
                     finishjob(wu)
                 else
                     setstatus(BLOCKED)
                 end
-            elseif getstatus(FAILURE)      # request repair
+            elseif status == FAILURE      # request repair
                 yield(Timeout(sim, repTime(wu)))
                 setstatus(oldstatus)
             else
-                throw(ArgumentError(@sprintf("%s: %d status.value not defined", wu.name, status.value)))
+                throw(ArgumentError(@sprintf("%s: %d status not defined", wu.name, status)))
             end
         catch exc
             if isa(exc, SimJulia.InterruptException) && exc.cause == FAILURE
-                if !getstatus(FAILURE)
-                    oldstatus = status.value
+                if status != FAILURE
+                    oldstatus = status
                 end
-                if getstatus(WORKING)
+                if status == WORKING
                     job = currentjob(wu)
                     Δt = now(sim) - wu.t0   # time worked into that job
                     job.completion += Δt/job.op_time
@@ -157,9 +153,8 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
 end
 
 
-
 """
-    workunit(sim::Simulation, log::Simlog, kind::Int64,
+    workunit(sim::Simulation, kind::Int64,
              name::String, description::String="",
              input::Int=1, wip::Int=1, output::Int=1,
              mtbf::Number=0, mttr::Number=0, alpha::Int=100,
@@ -169,7 +164,6 @@ create a new workunit, start a process on it and return it
 
 # Arguments
 - `sim::Simulation`: SimJulia `Simulation` variable
-- `log::Simlog`: which `Simlog` to log information to
 - `kind::Int64`: which kind of Workunit to create
 - `name::String`: name of Machine (used for scheduling and logging)
 - `description::String`: description, for informational purposes
@@ -182,17 +176,17 @@ create a new workunit, start a process on it and return it
                     work times (1: big, 100: small variation)
 - `timeslice::Number=0:` length of timeslice for multitasking, 0: no multitasking
 """
-function workunit(sim::Simulation, log::Simlog, kind::Int64,
+function workunit(sim::Simulation, kind::Int64,
                  name::String, description::String="",
                  input::Int=1, wip::Int=1, output::Int=1,
                  mtbf::Number=0, mttr::Number=0, alpha::Int=100,
                  timeslice::Number=0)
     wu = Workunit(name, description, kind,
-                PFQueue(name*"-IN", Resource(sim, input), Queue(Product)),
-                PFQueue(name*"-JOB", Resource(sim, wip), Queue(Product)),
-                PFQueue(name*"-OUT", Resource(sim, output), Queue(Product)),
-                alpha, mtbf, mttr, timeslice, 0.0)
-    proc = @process work(sim, wu, do_work, log)
+                PFQueue(name*"-IN", Resource(sim, input), Queue(Product), Array{PFlog{Int}, 1}[]),
+                PFQueue(name*"-JOB", Resource(sim, wip), Queue(Product), Array{PFlog{Int}, 1}[]),
+                PFQueue(name*"-OUT", Resource(sim, output), Queue(Product), Array{PFlog{Int}, 1}[]),
+                alpha, mtbf, mttr, timeslice, 0.0, Array{PFlog{Int}, 1}[])
+    proc = @process work(sim, wu, do_work)
     if mtbf > 0
         @process failure(sim, proc, mtbf)
     end
@@ -200,7 +194,7 @@ function workunit(sim::Simulation, log::Simlog, kind::Int64,
 end
 
 """
-    machine(sim::Simulation, log::Simlog,
+    machine(sim::Simulation,
             name::String; description::String="",
             input::Int=1, wip::Int=1, output::Int=1,
             mtbf::Number=0, mttr::Number=0, alpha::Int=100,
@@ -212,17 +206,17 @@ wrapper function for workunit.
 # Arguments
 see workunit
 """
-function machine(sim::Simulation, log::Simlog,
+function machine(sim::Simulation,
                 name::String; description::String="",
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
                 timeslice::Number=0)
-    workunit(sim, log, MACHINE, name, description,
+    workunit(sim, MACHINE, name, description,
              input, wip, output, mtbf, mttr, alpha, timeslice)
 end
 
 """
-    worker(sim::Simulation, log::Simlog,
+    worker(sim::Simulation,
            name::String; description::String="",
            mtbf::Number=0, mttr::Number=0,
            input::Int=1, wip::Int=1, output::Int=1, alpha::Int=1,
@@ -234,12 +228,12 @@ wrapper function for workunit.
 # Arguments
 see workunit
 """
-function worker(sim::Simulation, log::Simlog,
+function worker(sim::Simulation,
                 name::String; description::String="",
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
                 timeslice::Number=0)
-    workunit(sim, log, WORKER, name, description,
+    workunit(sim, WORKER, name, description,
              input, wip, output, mtbf, mttr, alpha, timeslice)
 end
 

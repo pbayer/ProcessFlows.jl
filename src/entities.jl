@@ -25,10 +25,16 @@ const TRANSPORT = 2
 const INSPECTOR = 3
 const STORE = 4
 
+mutable struct PFlog{N<:Number}
+    time::Real
+    status::N
+end
+
 mutable struct PFQueue
     name::String                # name
     res::Resource               # sentinel
     queue::Queue                # queue of products
+    log::Array{PFlog{Int}, 1}   # log of queue lengths over simulation time
 end
 
 mutable struct Job
@@ -58,6 +64,7 @@ mutable struct Workunit
     mttr::Number                # mean time to repair
     timeslice::Number           # length of timeslice for multitasking
     t0::Real                    # internal: storage of last start time
+    log::Array{PFlog{Int}, 1}   # log of the stati over simulation time
 end
 
 Workunits = Dict{String, Workunit}
@@ -71,6 +78,8 @@ mutable struct Product
     jobs::Array{Job,1}          # sequence of jobs
     pjob::Int                   # pointer to job
     status::Int                 # processing status
+    start_time::Real            # when was it started
+    end_time::Real              # when was it finished
 end
 
 mutable struct Planned
