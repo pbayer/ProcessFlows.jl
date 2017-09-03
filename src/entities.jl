@@ -52,6 +52,8 @@ mutable struct Job
     target::String              # name of target for transport jobs
 end
 
+Orders   = Dict{String, Array{Job,1}}
+
 mutable struct Workunit
     name::String                # name
     description::String         # descriptive string
@@ -82,6 +84,8 @@ mutable struct Product
     end_time::Real              # when was it finished
 end
 
+Products = Array{Product,1}
+
 mutable struct Planned
     code::Int                   # product code
     demand::Int                 # how many products must be produced
@@ -90,3 +94,5 @@ mutable struct Planned
     description::String         # descriptive string
     order::String               # order name
 end
+
+Plan     = Array{Planned, 1}

@@ -27,7 +27,7 @@ it fit for general use in simulation of production and project environments:
 
 - [ ] (0.1) queue lengths
 - [ ] (0.1) lead times
-- [ ] (0.1) workload
+- [x] (0.1) workload
 - [ ] (0.1) workflow (network graph)
 - [ ] (0.1) resource constraints
 

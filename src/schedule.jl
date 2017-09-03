@@ -7,10 +7,6 @@
 # license: MIT
 # --------------------------------------------
 
-Plan     = Array{Planned, 1}
-Products = Array{Product,1}
-Orders   = Dict{String, Array{Job,1}}
-
 sched    = Container{Int}
 
 
