@@ -1,12 +1,11 @@
 # PFlow.jl
 
-## Simulation of Production Systems and Projects
+## Simulation of product flow
 
-`PFlow.jl` is a [`Julia`](https://julialang.org) library, which can
-simulate the main physical characteristics of production systems and projects.
-Its meaning is **product flow**. Depending on the domain, in which it is used
-it can mean also production flow, project flow, process flow or even patient
-flow … Who knows?
+`PFlow.jl` is a [`Julia`](https://julialang.org) library, able to
+simulate the **product flow** in production, development and service systems.
+Since **product** can mean different things, it can simulate production, project,
+customer or even patient flow …
 
 ### Notebooks
 
@@ -17,7 +16,7 @@ production systems and projects by simple lists.
 
 ### Simple approach
 
-`PFlow` provides a model kit for basic entities of production systems or projects like
+`PFlow` provides a model kit for basic entities of production systems like
 
 - work units,
 - orders/jobs,
@@ -32,10 +31,10 @@ document, store and compare the results.
 [`Julia`](https://julialang.org) (with [`SimJulia`](https://github.com/BenLauwens/SimJulia.jl))
 is maturing and can provide for a really fast simulation library, capable –
 together with `PFlow's` simple approach – to model and simulate even large systems
-as in production, in automotive plants or in multiprojects.
+as automotive plants, multiprojects or hospitals.
 
-### Status of Project (as of 08/2017)
+### Status of Project (as of 09/2017)
 
 `PFlow` is in early development. Things are coming together quite quickly and a
 working prototype and some interesting results should be available in this
-repository by September 2017.
+repository by end of September 2017.
