@@ -87,7 +87,19 @@ loadbars(wus::Workunits) = loadbars(wus, String[])
 function flow()
 end
 
-function leadtime()
+function leadtime(pr::Products)
+    lt = leadtimetable(pr)
+    ind = 1:nrow(lt)
+    ord = Set(lt[:order])
+    for o ∈ ord
+        acc = lt[:order] .== o
+        plot(ind[acc], lt[:leadtime][acc], label=o)
+    end
+    xlabel("index")
+    ylabel("time")
+    title("Leadtime")
+    grid(ls=":")
+    legend(loc=4)
 end
 
 function queuelen()

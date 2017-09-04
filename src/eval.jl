@@ -67,4 +67,15 @@ end
 return a dataframe, giving for each product the start_time, end_time and leadtime
 """
 function leadtimetable(pr::Products)
+    d = Dict()
+    d["d1"] = [p.item for p ∈ pr]
+    d["d2"] = [p.code for p ∈ pr]
+    d["d3"] = [p.name for p ∈ pr]
+    d["d4"] = [p.order for p ∈ pr]
+    d["d5"] = [p.start_time for p ∈ pr]
+    d["d6"] = [p.end_time for p ∈ pr]
+    d["d7"] = d["d6"] - d["d5"]
+    df = DataFrame(d)
+    rename!(df, Dict(:d1=>:item, :d2=>:code, :d3=>:name, :d4=>:order,
+                     :d5=>:starttime, :d6=>:endtime, :d7=>:leadtime))
 end

@@ -23,10 +23,10 @@ it fit for general use in simulation of production and project environments:
 - [ ] (0.1) Outline
 - [ ] (0.1) Examples
 
-### Stats and visualization: `simviz.jl`
+### Stats and visualization: `viz.jl`
 
 - [ ] (0.1) queue lengths
-- [ ] (0.1) lead times
+- [x] (0.1) lead times
 - [x] (0.1) workload
 - [ ] (0.1) workflow (network graph)
 - [ ] (0.1) resource constraints
