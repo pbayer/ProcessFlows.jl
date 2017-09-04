@@ -6,6 +6,7 @@ module PFlow
 using SimJulia, PyPlot
 using PyCall
 @pyimport matplotlib.patches as patch
+@pyimport matplotlib.lines as mlines
 
 import DataStructures
 import Base: length, isempty, start, next, done

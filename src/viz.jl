@@ -84,9 +84,68 @@ end
 loadbars(wus::Workunits, w::String) = loadbars(wus, [w])
 loadbars(wus::Workunits) = loadbars(wus, String[])
 
-function flow()
+"""
+    flow(pr::Products, leadtime::Bool=true)
+
+plot the flow of products through work units over time.
+
+# Arguments
+- `pr::Products`: list of Products
+- `relative::Bool`: if `true`, the flow is plotted over leadtime
+"""
+function flow(pr::Products, wus::Workunits, relative::Bool=true)
+    lt = leadtimetable(pr)
+    ord = collect(Set(lt[:order]))            # prepare color codes for orders
+    sort!(ord)
+    colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+              "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"]
+    lines = []
+    cord = Dict()
+    for (i, o) ∈ enumerate(ord)
+        col = colors[mod(i, length(colors))]
+        push!(lines, mlines.Line2D([], [], color=col, label=o))
+        cord[o] = col
+    end
+
+    w = collect(keys(wus))                    # prepare indices for work units
+    w = [i for i ∈ w if length(wus[i].log) > 0]
+    sort!(w, rev=true)
+    unshift!(w, "OUT")
+    push!(w, "IN")
+    wusi = Dict()
+    for i ∈ 1:length(w)
+        wusi[w[i]] = i
+    end
+
+    for p ∈ pr
+        start = relative ? p.start_time : 0
+        wu = Int[]
+        t = Float64[]
+        push!(t, p.start_time - start)
+        push!(wu, wusi["IN"])
+        for j ∈ p.jobs
+            push!(t, j.start_time - start)
+            push!(t, j.end_time - start)
+            push!(wu, wusi[j.wu])
+            push!(wu, wusi[j.wu])
+        end
+        push!(t, p.end_time - start)
+        push!(wu, wusi["OUT"])
+
+        plot(t, wu, color=cord[p.order], lw=1)
+    end
+    xlabel(relative ? "leadtime" : "time")
+    yticks(1:length(w), w)
+    title("Flow diagram " * (relative ? "(relative)" : "(absolute)"))
+    legend(loc=1, handles=lines)
+    grid(ls=":")
 end
 
+"""
+    leadtime(pr::Products)
+
+plot the leadtimes over the index of the products sorted by orders
+"""
 function leadtime(pr::Products)
     lt = leadtimetable(pr)
     ind = 1:nrow(lt)
