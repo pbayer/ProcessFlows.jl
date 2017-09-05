@@ -68,8 +68,18 @@ end
 loadtime(wus::Workunits, w::String) = loadtime(wus, [w])
 loadtime(wus::Workunits) = loadtime(wus, String[])
 
-function loadbars(wus::Workunits, w::Array{String,1})
-    t = loadtable(wus)
+"""
+    loadbars(wus::Workunits, w::Array{String,1}, duration::Number=1)
+
+draw a bar diagram of the workload
+
+# Arguments
+- `wus::Workunits`: work units
+- `w::Array{String,1}`: name of work units to be shown
+- `duration::Number=1`: if ≠ 1, ratios are shown
+"""
+function loadbars(wus::Workunits, w::Array{String,1}, duration::Number=1)
+    t = loadtable(wus, duration)
     ind = 1:nrow(t)
     width = 0.4
     bar(ind, t[:working], width, color="green", label="working")
@@ -81,11 +91,11 @@ function loadbars(wus::Workunits, w::Array{String,1})
     grid(axis="y",ls=":")
 end
 
-loadbars(wus::Workunits, w::String) = loadbars(wus, [w])
-loadbars(wus::Workunits) = loadbars(wus, String[])
+loadbars(wus::Workunits, w::String, duration::Number=1) = loadbars(wus, [w], duration)
+loadbars(wus::Workunits, duration::Number=1) = loadbars(wus, String[], duration)
 
 """
-    flow(pr::Products, leadtime::Bool=true)
+    flow(pr::Products, relative::Bool=false)
 
 plot the flow of products through work units over time.
 
