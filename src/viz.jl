@@ -93,7 +93,7 @@ plot the flow of products through work units over time.
 - `pr::Products`: list of Products
 - `relative::Bool`: if `true`, the flow is plotted over leadtime
 """
-function flow(pr::Products, wus::Workunits, relative::Bool=true)
+function flow(pr::Products, wus::Workunits, relative::Bool=false)
     lt = leadtimetable(pr)
     ord = collect(Set(lt[:order]))            # prepare color codes for orders
     sort!(ord)

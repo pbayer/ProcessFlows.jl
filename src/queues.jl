@@ -54,10 +54,13 @@ end
 wait for something in the queue, remove it from its front and return it.
 """
 function dequeue!(q::PFQueue)
-    if length(q.queue) > 0
+    if !isempty(q.queue)
         Get(q.res, 1)
     else
         yield(Get(q.res, 1))
+        while isempty(q.queue)
+            yield(Timeout(q.res.env, 1)) # wait for sync - this is an ugly hack !
+        end
     end
     DataStructures.dequeue!(q.queue)
 end

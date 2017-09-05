@@ -13,6 +13,7 @@
 give the current job for a workunit
 """
 function currentjob(wu::Workunit)
+    @assert !isempty(wu.wip) "wip of $(wu.name) is empty"
     p = front(wu.wip)
     p.jobs[p.pjob]
 end

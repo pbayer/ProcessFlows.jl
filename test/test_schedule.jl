@@ -27,7 +27,7 @@ wus = readWorkunits("../models/MOD01_workunits.csv", sim)
 mps = create_mps([plan1, plan2], d)
 out = Products()
 start_scheduling(sim, wus, mps, out)
-run(sim, 250)
+run(sim, 140)
 
 @test length(mps) == 0
 @test length(out) == 25
