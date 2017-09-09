@@ -96,7 +96,7 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function)
         status = newstatus
     end
 
-    function getnewjob(wu::Workunit)
+    function getnewjob()
         p = dequeue!(wu.input)
         enqueue!(wu.wip, p)
         p.jobs[p.pjob].status = PROGRESS
@@ -104,11 +104,14 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function)
         call_scheduler()
     end
 
-    function finishjob(wu::Workunit)
-        p = dequeue!(wu.wip)
-        p.jobs[p.pjob].status = DONE
-        p.jobs[p.pjob].end_time = now(sim)
-        enqueue!(wu.output, p)
+    function finishjob()
+        if !isempty(wu.wip)
+            p = front(wu.wip)
+            p.jobs[p.pjob].status = DONE
+            p.jobs[p.pjob].end_time = now(sim)
+            enqueue!(wu.output, p)
+            p = dequeue!(wu.wip)
+        end
         setstatus(IDLE)
         call_scheduler()
     end
@@ -119,14 +122,14 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function)
     while true
         try
             if status == IDLE           # get a new job
-                getnewjob(wu)
+                getnewjob()
                 setstatus(WORKING)
             elseif status == BLOCKED      # output buffer is full
-                finishjob(wu)
+                finishjob()
             elseif status == WORKING
                 workfunc(sim, wu)
                 if !isfull(wu.output)
-                    finishjob(wu)
+                    finishjob()
                 else
                     setstatus(BLOCKED)
                 end

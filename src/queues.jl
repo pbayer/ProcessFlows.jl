@@ -40,11 +40,10 @@ back(q::PFQueue) = DataStructures.back(q.queue)
 wait for a place, enqueue x at the end of q.queue and return q.queue
 """
 function enqueue!(q::PFQueue, p::Product)
-    if length(q.queue) < q.res.capacity
-        Put(q.res, 1)
-    else
-        yield(Put(q.res, 1))
+    while isfull(q)
+        yield(Timeout(q.res.env, 1)) # yield(Put(...)) is not secure
     end
+    Put(q.res, 1)
     DataStructures.enqueue!(q.queue, p)
 end
 
@@ -54,12 +53,12 @@ end
 wait for something in the queue, remove it from its front and return it.
 """
 function dequeue!(q::PFQueue)
-    if !isempty(q.queue)
+    if !isempty(q)
         Get(q.res, 1)
     else
         yield(Get(q.res, 1))
-        while isempty(q.queue)
-            yield(Timeout(q.res.env, 1)) # wait for sync - this is an ugly hack !
+        while isempty(q)
+            yield(Timeout(q.res.env, 1)) # yield(Get(...)) is not secure
         end
     end
     DataStructures.dequeue!(q.queue)
