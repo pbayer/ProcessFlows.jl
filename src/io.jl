@@ -8,12 +8,12 @@
 # --------------------------------------------
 
 """
-    readWorkunits(file::String, sim::Simulation, log::Simlog) :: Workunits
+    readWorkunits(file::String, sim::DES, log::Simlog) :: Workunits
 
 read the workunits from a .csv file, start the processes
 and return a Dict of the workunits.
 """
-function readWorkunits(file::String, sim::Simulation) :: Workunits
+function readWorkunits(file::String, sim::DES) :: Workunits
     t = readtable(file)
     d = Workunits()
     for i ∈ 1:nrow(t)
