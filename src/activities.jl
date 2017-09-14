@@ -39,11 +39,11 @@ function repTime(wu::Workunit, alpha=1)
 end
 
 """
-    failure(sim::Simulation, proc::Process, mttr::Real)
+    failure(sim::DES, proc::Task, mttr::Real)
 
 interrupt a process with a FAILURE after rand(Exponential(mttr))
 """
-function failure(sim::Simulation, proc::Process, mtbf::Real)
+function failure(sim::DES, proc::Task, mtbf::Real)
     while true
         Δt = rand(Exponential(mtbf))
         yield(Timeout(sim, Δt))
@@ -52,11 +52,11 @@ function failure(sim::Simulation, proc::Process, mtbf::Real)
 end
 
 """
-    do_work(sim::Simulation, wu::Workunit)
+    do_work(sim::DES, wu::Workunit)
 
 auxiliary function for doing the work
 """
-function do_work(sim::Simulation, wu::Workunit)
+function do_work(sim::DES, wu::Workunit)
     job = currentjob(wu)
     wu.t0 = now(sim)
     if iszero(job.op_time)
@@ -64,32 +64,41 @@ function do_work(sim::Simulation, wu::Workunit)
     end
     Δt = job.op_time*(1 - job.completion)
     yield(Timeout(sim, Δt))
-#    job.status = DONE -> finishjob
 end
 
 """
-    do_multitask(sim::Simulation, wu::Workunit)
+    do_multitask(sim::DES, wu::Workunit)
 
 take the current job for the product at the front of the wu.wip queue,
 work on it for wu.timeslice, move it to the back and repeat doing
 """
-function do_multitask(sim::Simulation, wu::Workunit, job::Job)
+function do_multitask(sim::DES, wu::Workunit, job::Job)
     job = currentjob(wu)
     ## THIS HAS YET TO BE IMPLEMENTED
 end
 
 """
-    work(sim::Simulation, wu::Workunit, workfunc::Function, log::Simlog)
+    work(sim::DES, wu::Workunit, workfunc::Function, log::Simlog)
 
 let a Workunit work on its jobs, this has to be started as a process
 on a Workunit variable.
 
 # Arguments
-- `sim::Simulation`: SimJulia Simulation variable
+- `sim::DES`: SimJulia DES variable
 - `wu::Workunit`: characteristics of Workunit
 - `workfunc::Function`: function describing the operation
 """
-function work(sim::Simulation, wu::Workunit, workfunc::Function)
+function work(sim::DES, wu::Workunit, workfunc::Function)
+
+    function do_my_work() # added for testing
+        job = currentjob(wu)
+        wu.t0 = now(sim)
+        if iszero(job.op_time)
+            job.op_time = opTime(wu.alpha, job.plan_time)
+        end
+        Δt = job.op_time*(1 - job.completion)
+        yield(Timeout(sim, Δt))
+    end
 
     function setstatus(newstatus)
         push!(wu.log, PFlog(now(sim), newstatus))
@@ -101,7 +110,8 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function)
         enqueue!(wu.wip, p)
         p.jobs[p.pjob].status = PROGRESS
         p.jobs[p.pjob].start_time = now(sim)
-        call_scheduler()
+#        call_scheduler()
+        Request(sched)
     end
 
     function finishjob()
@@ -127,7 +137,8 @@ function work(sim::Simulation, wu::Workunit, workfunc::Function)
             elseif status == BLOCKED      # output buffer is full
                 finishjob()
             elseif status == WORKING
-                workfunc(sim, wu)
+                do_my_work()
+#                workfunc(sim, wu)
                 if !isfull(wu.output)
                     finishjob()
                 else
@@ -159,8 +170,7 @@ end
 
 
 """
-    workunit(sim::Simulation, kind::Int64,
-             name::String, description::String="",
+    workunit(sim::DES, kind::Int64, name::String, description::String="",
              input::Int=1, wip::Int=1, output::Int=1,
              mtbf::Number=0, mttr::Number=0, alpha::Int=100,
              timeslice::Number=0)
@@ -168,7 +178,7 @@ end
 create a new workunit, start a process on it and return it
 
 # Arguments
-- `sim::Simulation`: SimJulia `Simulation` variable
+- `sim::DES`: SimJulia `DES` variable
 - `kind::Int64`: which kind of Workunit to create
 - `name::String`: name of Machine (used for scheduling and logging)
 - `description::String`: description, for informational purposes
@@ -181,8 +191,7 @@ create a new workunit, start a process on it and return it
                     work times (1: big, 100: small variation)
 - `timeslice::Number=0:` length of timeslice for multitasking, 0: no multitasking
 """
-function workunit(sim::Simulation, kind::Int64,
-                 name::String, description::String="",
+function workunit(sim::DES, kind::Int64, name::String, description::String="",
                  input::Int=1, wip::Int=1, output::Int=1,
                  mtbf::Number=0, mttr::Number=0, alpha::Int=100,
                  timeslice::Number=0)
@@ -191,16 +200,15 @@ function workunit(sim::Simulation, kind::Int64,
                 PFQueue(name*"-JOB", Resource(sim, wip), Queue(Product), Array{PFlog{Int}, 1}[]),
                 PFQueue(name*"-OUT", Resource(sim, output), Queue(Product), Array{PFlog{Int}, 1}[]),
                 alpha, mtbf, mttr, timeslice, 0.0, Array{PFlog{Int}, 1}[])
-    proc = @process work(sim, wu, do_work)
+    proc = @schedule work(sim, wu, do_work)
     if mtbf > 0
-        @process failure(sim, proc, mtbf)
+        @schedule failure(sim, proc, mtbf)
     end
     wu
 end
 
 """
-    machine(sim::Simulation,
-            name::String; description::String="",
+    machine(sim::DES, name::String; description::String="",
             input::Int=1, wip::Int=1, output::Int=1,
             mtbf::Number=0, mttr::Number=0, alpha::Int=100,
             timeslice::Number=0)
@@ -211,8 +219,7 @@ wrapper function for workunit.
 # Arguments
 see workunit
 """
-function machine(sim::Simulation,
-                name::String; description::String="",
+function machine(sim::DES, name::String; description::String="",
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
                 timeslice::Number=0)
@@ -221,8 +228,7 @@ function machine(sim::Simulation,
 end
 
 """
-    worker(sim::Simulation,
-           name::String; description::String="",
+    worker(sim::DES, name::String; description::String="",
            mtbf::Number=0, mttr::Number=0,
            input::Int=1, wip::Int=1, output::Int=1, alpha::Int=1,
            timeslice::Number=0)
@@ -233,8 +239,7 @@ wrapper function for workunit.
 # Arguments
 see workunit
 """
-function worker(sim::Simulation,
-                name::String; description::String="",
+function worker(sim::DES, name::String; description::String="",
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
                 timeslice::Number=0)
