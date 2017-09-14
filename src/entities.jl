@@ -25,10 +25,6 @@ const TRANSPORT = 2
 const INSPECTOR = 3
 const STORE = 4
 
-struct SimException <: Exception
-  cause :: Any
-end
-
 mutable struct PFlog{N<:Number}
     time::Real
     status::N
@@ -36,7 +32,8 @@ end
 
 mutable struct PFQueue
     name::String                # name
-    queue::Channel                # queue of products
+    res::Resource               # sentinel
+    queue::Queue                # queue of products
     log::Array{PFlog{Int}, 1}   # log of queue lengths over simulation time
 end
 
@@ -56,6 +53,24 @@ mutable struct Job
 end
 
 Orders   = Dict{String, Array{Job,1}}
+
+mutable struct Workunit
+    name::String                # name
+    description::String         # descriptive string
+    kind::Int                   # type of workunit
+    input::PFQueue              # input queue
+    wip::PFQueue                # internal work in progress queue
+    output::PFQueue             # output queue
+    alpha::Int                  # Erlang scale parameter
+    mtbf::Number                # mean time between failures
+    mttr::Number                # mean time to repair
+    timeslice::Number           # length of timeslice for multitasking
+    t0::Real                    # internal: storage of last start time
+    log::Array{PFlog{Int}, 1}   # log of the stati over simulation time
+end
+
+Workunits = Dict{String, Workunit}
+
 mutable struct Product
     code::Int                   # product code
     item::Int                   # item number - this must be unique !!
@@ -81,20 +96,3 @@ mutable struct Planned
 end
 
 Plan     = Array{Planned, 1}
-
-mutable struct Workunit
-    name::String                # name
-    description::String         # descriptive string
-    kind::Int                   # type of workunit
-    input::PFQueue              # input queue
-    wip::Products               # internal work in progress queue
-    output::PFQueue             # output queue
-    alpha::Int                  # Erlang scale parameter
-    mtbf::Number                # mean time between failures
-    mttr::Number                # mean time to repair
-    timeslice::Number           # length of timeslice for multitasking
-    t0::Real                    # internal: storage of last start time
-    log::Array{PFlog{Int}, 1}   # log of the stati over simulation time
-end
-
-Workunits = Dict{String, Workunit}

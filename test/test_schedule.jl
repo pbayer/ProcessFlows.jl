@@ -48,27 +48,9 @@ mps = create_mps([plan1, plan2], d)
 
 out = Products()
 start_scheduling(sim, wus, mps, out)
-run(sim, 10000)
+run(sim, 15000)
 
 @test length(mps) == 0
 @test length(out) == 2500
 
 println("test scheduling 2500 finished")
-
-plan1 = Planned(123,  70000, 123000000, "test1", "test1test1test1", "ORD01")
-plan2 = Planned(456, 180000, 456000000, "test2", "test2test2test2", "ORD02")
-
-srand(2345)  # seed random number generator for reproducibility
-sim = Simulation()
-wus = readWorkunits("../models/MOD01_workunits.csv", sim)
-mps = create_mps([plan1, plan2], d)
-@test length(mps) == 250000
-
-out = Products()
-start_scheduling(sim, wus, mps, out)
-run(sim, 1000000)
-
-@test length(mps) == 0
-@test length(out) == 250000
-
-println("test scheduling 250000 finished")

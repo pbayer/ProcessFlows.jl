@@ -30,7 +30,8 @@ are read by `PFlow` in order to keep programming needs to a minimum.
 `PFlow` contains utility functions to run simulations and to visualize,
 document, store and compare the results.
 
-[`Julia`](https://julialang.org) is maturing and can provide for a really fast simulation library, capable –
+[`Julia`](https://julialang.org) (with [`SimJulia`](https://github.com/BenLauwens/SimJulia.jl))
+is maturing and can provide for a really fast simulation library, capable –
 together with `PFlow's` simple approach – to model and simulate even large systems
 as automotive plants, multiprojects or hospitals.
 
