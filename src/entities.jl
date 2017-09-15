@@ -36,8 +36,13 @@ end
 
 mutable struct PFQueue
     name::String                # name
-    queue::Channel                # queue of products
+    env::DES                    # simulation environment
+    queue::Channel              # queue of products
     log::Array{PFlog{Int}, 1}   # log of queue lengths over simulation time
+
+    function PFQueue(name::String, env::DES, capacity::Int=1)
+        new(name, env, Channel(capacity), PFlog[])
+    end
 end
 
 mutable struct Job

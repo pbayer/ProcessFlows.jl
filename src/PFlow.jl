@@ -15,15 +15,16 @@ using PyPlot, PyCall
 using LightGraphs
 
 import DataStructures
-import Base: now
+import Base: now, isempty, length
 import DataStructures: PriorityQueue, peek
 import Distributions: Erlang, Exponential
 import DataFrames: DataFrame, rename!, readtable, nrow, isna
 
 export Event, DES, delayuntil, delay, interrupttask, SimException,
        now, register, simulate
+export isfull, isempty, capacity, length, front, back, enqueue!, dequeue!
 export work, workunit, machine, worker, transport
-export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE,
+export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE, PFQueue,
        Workunit, Workunits, Job, Product, Planned, Plan, Orders, Products
 export Mps, create_mps, scheduler, source, sink, start_scheduling
 export readWorkunits, readOrders
@@ -33,6 +34,7 @@ export ordergraph, flowgraph
 
 include("sim.jl")
 include("entities.jl")
+include("queue.jl")
 include("activities.jl")
 include("eval.jl")
 include("viz.jl")

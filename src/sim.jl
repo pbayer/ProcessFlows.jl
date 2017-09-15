@@ -13,8 +13,13 @@ mutable struct Event
     error::Bool
     channel::Channel{Any}
     task::Task
+
     function Event(time::Float64, value::Any=time, error::Bool=false)
         new(time, value, error, Channel{Any}(0), current_task())
+    end
+
+    function Event(time::Int, value::Any=time, error::Bool=false)
+        new(float(time), value, error, Channel{Any}(0), current_task())
     end
 end
 
@@ -49,7 +54,7 @@ now(sim::DES) = sim.time
 
 
 """
-    delayuntil(sim::DES, time::Float64, value::Any=time, error::Bool=false)
+    delayuntil(sim::DES, time::Number, value::Any=time, error::Bool=false)
 
 create a new simulation event, send a request and wait for the scheduler
 
@@ -59,7 +64,7 @@ create a new simulation event, send a request and wait for the scheduler
 - `value::Int=0`: value, which should be returned at the event
 - `error::Bool=false`: should an exception be raised
 """
-function delayuntil(sim::DES, time::Float64, value::Any=time, error::Bool=false)
+function delayuntil(sim::DES, time::Number, value::Any=time, error::Bool=false)
     ev = Event(time, value, error)
     put!(sim.request, ev)
     take!(ev.channel)
@@ -76,7 +81,7 @@ create a new simulation event, send a request and yield to the scheduler
 - `time::Float64`: time after sim.time, the condition is fulfilled
 - `error::Bool=false`: should an exception be raised
 """
-delay(sim::DES, time::Float64, error::Bool=false) = delayuntil(sim, sim.time + time, sim.time + time, error)
+delay(sim::DES, time::Number, error::Bool=false) = delayuntil(sim, sim.time + time, sim.time + time, error)
 
 """
     register(sim::DES, client::Task)
@@ -88,6 +93,11 @@ function register(sim::DES, client::Task)
     sim.clients[client] = Int64[]
 end
 
+function register(sim::DES, clients::Array{Task,1})
+    for c in clients
+        register(sim, c)
+    end
+end
 
 """
     removetask(sim::DES, task::Task)
