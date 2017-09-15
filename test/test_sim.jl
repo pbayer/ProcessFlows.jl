@@ -1,13 +1,19 @@
 using PFlow
 
 function producer(sim::DES, name::String)
-    n = rand(1:10)
-    for i in 1:n
-        Δt = randn() + 5
-        delay(sim, Δt)
-        println("Task:$name id:$(current_task()) nr:$i at $(now(sim))")
+    mytime = sim.time
+    n = rand(1:25)
+    try
+        for i in 1:n
+            mytime += randn() + 5
+            delayuntil(sim, mytime)
+            println("Task:$name id:$(current_task()) nr:$i at $mytime")
+        end
+    catch exc
+        println("Task:$name id:$(current_task()) exception:$exc at $(sim.time)")
+        mytime = sim.time
     end
-    println("Task:$name id:$(current_task()) finishes at $(now(sim))")
+    println("Task:$name id:$(current_task()) finishes at $mytime")
 end
 
 srand(123)
@@ -18,4 +24,6 @@ c = @async producer(sim, "C")
 for t in [a,b,c]
     register(sim, t)
 end
-simulate(sim, 100)
+d = @async simulate(sim, 100)
+sleep(1)
+interrupttask(sim, a)

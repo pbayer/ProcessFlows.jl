@@ -20,7 +20,8 @@ import DataStructures: PriorityQueue, peek
 import Distributions: Erlang, Exponential
 import DataFrames: DataFrame, rename!, readtable, nrow, isna
 
-export Event, DES, delay, simulate, now, register
+export Event, DES, delayuntil, delay, interrupttask, SimException,
+       now, register, simulate
 export work, workunit, machine, worker, transport
 export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE,
        Workunit, Workunits, Job, Product, Planned, Plan, Orders, Products
