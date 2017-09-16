@@ -8,7 +8,6 @@
 # --------------------------------------------
 
 sched    = Channel(0)
-# sched = 0
 
 """
     create_mps(plan::Plan, order::Orders) :: Products
@@ -99,11 +98,7 @@ function scheduler(sim::DES, wus::Workunits)
                 end
             end # if !isempty
         end # for wu
-        yield(Release(sched))
-#        sched = 0
-#        while sched == 0
-#            yield(Timeout(sim, 1))
-#        end
+        take!(sched) # wait for requests
     end # while true
 end # function
 
@@ -162,15 +157,15 @@ function start_scheduling(sim::DES, wus::Workunits, mps::Products, output::Produ
                   PFQueue("INPUT", Resource(sim, 10), Queue(Product), Array{PFlog{Int}, 1}[]),
                   1000, 0, 0, 0, 0.0, Array{PFlog{Int}, 1}[])
     wus["IN"] = w1
-    @schedule source(sim, w1, mps)
+    @async source(sim, w1, mps)
     w2 = Workunit("OUT", "Output", STORE,
                 PFQueue("OUTPUT", Resource(sim, 10), Queue(Product), Array{PFlog{Int}, 1}[]),
                 PFQueue("DUMMY", Resource(sim, 1), Queue(Product), Array{PFlog{Int}, 1}[]),
                 PFQueue("DUMMY", Resource(sim, 10), Queue(Product), Array{PFlog{Int}, 1}[]),
                 1000, 0, 0, 0, 0.0, Array{PFlog{Int}, 1}[])
     wus["OUT"] = w2
-    @schedule sink(sim, w2, output)
-    @schedule scheduler(sim, wus)
+    @async sink(sim, w2, output)
+    @async scheduler(sim, wus)
 end
 
 
@@ -179,8 +174,4 @@ end
 
 call the scheduler
 """
-function call_scheduler()
-    global sched
-    yield(Request(sched))
-#    sched = 1
-end
+call_scheduler() = put!(sched, 1)

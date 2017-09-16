@@ -33,9 +33,10 @@ end
 
 """
     dequeue!(pq::PFQueue)
+
 wait for something in the queue, remove it from its front and return it.
 """
-function dequeue!(pq::PFQueue) :: Product
+function dequeue!(pq::PFQueue)::Product
     p = take!(pq.queue)
     l = PFlog(pq.env.time, length(pq)) # log queue length
     push!(pq.log, l)

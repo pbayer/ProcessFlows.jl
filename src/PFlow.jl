@@ -24,9 +24,9 @@ export Event, DES, delayuntil, delay, interrupttask, SimException,
        now, register, simulate
 export isfull, isempty, capacity, length, front, back, enqueue!, dequeue!
 export work, workunit, machine, worker, transport
-export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE, PFQueue,
-       Workunit, Workunits, Job, Product, Planned, Plan, Orders, Products
-export Mps, create_mps, scheduler, source, sink, start_scheduling
+export IDLE, WORKING, FAILURE, BLOCKED, OPEN, PROGRESS, DONE, FINISHED,
+       PFQueue, Workunit, Workunits, Job, Product, Planned, Plan, Orders, Products
+export Mps, create_mps, scheduler, source, sink, start_scheduling, sched
 export readWorkunits, readOrders
 export wulog, productlog, queuelog, loadtable, leadtimetable
 export loadtime, loadstep, loadbars, flow, leadtime, queuelen

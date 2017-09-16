@@ -7,6 +7,10 @@
 # license: MIT
 # --------------------------------------------
 
+struct SimException <: Exception
+  cause :: Any
+end
+
 mutable struct Event
     time::Float64
     value::Any
@@ -35,12 +39,14 @@ mutable struct DES
     events::Dict{Int64, Array{Event,1}}
     request::Channel{Event}
     clients::Dict{Task, Array{Int64,1}}
-    index::Int64
+    index::Int64                          # number of events
+    duration::Int64                       # duration in milliseconds
+    termination::Int64                    # cause of termination
 
     function DES(starttime::Float64=0.0)
         new(starttime, PriorityQueue{Int64, Float64}(), Dict{Float64, Int64}(),
             Dict{Int64, Array{Event,1}}(), Channel{Event}(Inf),
-            Dict{Task, Array{Int64,1}}(), 0)
+            Dict{Task, Array{Int64,1}}(), 0, 0, -1)
     end
 end
 
@@ -135,13 +141,40 @@ function interrupttask(sim::DES, task::Task, exc::Exception=SimException(FAILURE
     schedule(task, exc, error=true)
 end
 
+function watchdog(sim::DES, task::Task)
+    t0 = sim.time
+    while true
+        sleep(0.1)
+        if sim.time == t0
+            task.exception = SimException(IDLE)
+            schedule(task, SimException(IDLE), error=true)
+            break
+        end
+        t0 = sim.time
+    end
+end
+
+function terminateclients(sim::DES)
+    for i in keys(sim.clients)
+        if i.state != :done
+            schedule(i, SimException(FINISHED), error=true)
+        end
+    end
+end
 
 """
-    simulate(sim::DES, time::Number)
+    simulate(sim::DES, time::Number; finish::Bool=false)
 
 run a simulation for sim.time + time
+
+# Arguments
+- `sim::DES`: event source for simulation events
+- `time::Number`: simulation units for which to run a simulation
+- `finish::Bool=false`: should client tasks be terminated after simulation.
+  This will throw a SimException(FINISHED) to them. Also in this case the
+  simulation cannot be continued afterwards.
 """
-function simulate(sim::DES, time::Number)
+function simulate(sim::DES, time::Number; finish::Bool=true)
 
     function schedule_event(ev)
         if haskey(sim.times, ev.time)
@@ -155,47 +188,61 @@ function simulate(sim::DES, time::Number)
         push!(sim.clients[ev.task], sim.index)
     end
 
-    # check
-    function runnable()
-        !isempty(sim.clients) && !all(t->(t.state == :done), sim.clients)
-    end
-
-    sleep(0.001) # wait 1 ms
-    stime = sim.time + time
-    t = 0
-    while t < stime # && runnable() # --> not working at the moment
-        if isready(sim.request) || !isempty(sim.sched)
-            while isready(sim.request) # if requests are available take them and proceed
-                ev = take!(sim.request)
+    stime = sim.time + time; t = 0
+    myself = current_task()
+    @async watchdog(sim, myself)
+    t0 = now()
+    while t < stime
+        try
+            if isready(sim.request) || !isempty(sim.sched)
+                while isready(sim.request) # if requests are available take them and proceed
+                    ev = take!(sim.request)
+                    schedule_event(ev)
+                end
+            else
+                ev = take!(sim.request) # wait for requests
                 schedule_event(ev)
             end
-        else
-            ev = take!(sim.request) # wait for requests
-            schedule_event(ev)
-        end
-        if isempty(sim.sched)
-            break
-        else
-            (i, t) = DataStructures.peek(sim.sched)
-#            println("next event $i at $t")
-            if t >= stime
-                println("next event time:$t ≥ stime")
+            if isempty(sim.sched)
                 break
-            end
-
-            sim.time = t
-            for ev ∈ sim.events[i]
-                if ev.error
-                    interrupttask(sim, ev.task, SimException(FAILURE))
-                else
-                    filter!(x->x!=i, sim.clients[ev.task])
-                    DataStructures.dequeue!(sim.sched)
-                    delete!(sim.times, t)
-                    delete!(sim.events, i)
-                    put!(ev.channel, ev.value)
+            else
+                (i, t) = DataStructures.peek(sim.sched)
+    #            println("next event $i at $t")
+                sim.time = t
+                for ev ∈ sim.events[i]
+                    if ev.error
+                        interrupttask(sim, ev.task, SimException(FAILURE))
+                    else
+                        filter!(x->x!=i, sim.clients[ev.task])
+                        DataStructures.dequeue!(sim.sched)
+                        delete!(sim.times, t)
+                        delete!(sim.events, i)
+                        if t >= stime
+                            throw(SimException(DONE))
+                        else
+                            put!(ev.channel, ev.value)
+                        end
+                    end
                 end
+            end # if isempty
+        catch exc
+            if isa(exc, SimException)
+                sim.termination = exc.cause
+                break
+            else
+                rethrow(exc)
             end
-        end # if isempty
+        end
     end # if while
+    sim.duration = Dates.value(now()-t0)
     sim.time = stime
+    if finish
+        terminateclients(sim)
+    end
+    print("Simulation ends after $(sim.duration) ms")
+    if sim.termination == IDLE
+        println(" - idle after $(sim.index) events")
+    elseif sim.termination == DONE
+        println(" - time:$t ≥ stime after $(sim.index) events")
+    end
 end

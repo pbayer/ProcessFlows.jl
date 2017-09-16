@@ -14,7 +14,7 @@ give the current job for a workunit
 """
 function currentjob(wu::Workunit)
     @assert !isempty(wu.wip) "wip of $(wu.name) is empty"
-    p = front(wu.wip)
+    p = wu.wip[1]
     p.jobs[p.pjob]
 end
 
@@ -46,8 +46,8 @@ interrupt a process with a FAILURE after rand(Exponential(mttr))
 function failure(sim::DES, proc::Task, mtbf::Real)
     while true
         Δt = rand(Exponential(mtbf))
-        yield(Timeout(sim, Δt))
-        interrupt(proc, FAILURE)
+        delay(sim, Δt)
+        interrupttask(sim, proc)
     end
 end
 
@@ -58,12 +58,13 @@ auxiliary function for doing the work
 """
 function do_work(sim::DES, wu::Workunit)
     job = currentjob(wu)
-    wu.t0 = now(sim)
+    wu.t0 = wu.time
     if iszero(job.op_time)
         job.op_time = opTime(wu.alpha, job.plan_time)
     end
     Δt = job.op_time*(1 - job.completion)
-    yield(Timeout(sim, Δt))
+    delayuntil(sim, wu.time+Δt)
+    wu.time += Δt
 end
 
 """
@@ -90,16 +91,6 @@ on a Workunit variable.
 """
 function work(sim::DES, wu::Workunit, workfunc::Function)
 
-    function do_my_work() # added for testing
-        job = currentjob(wu)
-        wu.t0 = now(sim)
-        if iszero(job.op_time)
-            job.op_time = opTime(wu.alpha, job.plan_time)
-        end
-        Δt = job.op_time*(1 - job.completion)
-        yield(Timeout(sim, Δt))
-    end
-
     function setstatus(newstatus)
         push!(wu.log, PFlog(now(sim), newstatus))
         status = newstatus
@@ -107,27 +98,26 @@ function work(sim::DES, wu::Workunit, workfunc::Function)
 
     function getnewjob()
         p = dequeue!(wu.input)
-        enqueue!(wu.wip, p)
+        push!(wu.wip, p)
         p.jobs[p.pjob].status = PROGRESS
-        p.jobs[p.pjob].start_time = now(sim)
-#        call_scheduler()
-        Request(sched)
+        p.jobs[p.pjob].start_time = wu.time
+        call_scheduler()
     end
 
     function finishjob()
         if !isempty(wu.wip)
-            p = front(wu.wip)
+            p = pop!(wu.wip)
             p.jobs[p.pjob].status = DONE
-            p.jobs[p.pjob].end_time = now(sim)
+            p.jobs[p.pjob].end_time = wu.time
             enqueue!(wu.output, p)
-            p = dequeue!(wu.wip)
         end
         setstatus(IDLE)
         call_scheduler()
     end
 
+    wu.time = sim.time
     status = IDLE
-    push!(wu.log, PFlog(now(sim), status))
+    push!(wu.log, PFlog(wu.time, status))
     oldstatus = IDLE
     while true
         try
@@ -137,30 +127,36 @@ function work(sim::DES, wu::Workunit, workfunc::Function)
             elseif status == BLOCKED      # output buffer is full
                 finishjob()
             elseif status == WORKING
-                do_my_work()
-#                workfunc(sim, wu)
+                workfunc(sim, wu)
                 if !isfull(wu.output)
                     finishjob()
                 else
                     setstatus(BLOCKED)
                 end
             elseif status == FAILURE      # request repair
-                yield(Timeout(sim, repTime(wu)))
+                delayuntil(sim, wu.time + repTime(wu))
                 setstatus(oldstatus)
             else
                 throw(ArgumentError(@sprintf("%s: %d status not defined", wu.name, status)))
             end
         catch exc
-            if isa(exc, SimJulia.InterruptException) && exc.cause == FAILURE
-                if status != FAILURE
-                    oldstatus = status
+            if isa(exc, SimException)
+                if exc.cause == FAILURE
+                    wu.time = sim.time     # synchronize wu.time to simulation time
+                    if status != FAILURE
+                        oldstatus = status
+                    end
+                    if status == WORKING
+                        job = currentjob(wu)
+                        Δt = maximum([wu.time - wu.t0, 0])   # time worked into that job
+                        job.completion += Δt/job.op_time
+                    end
+                    setstatus(FAILURE)
+                elseif exc.cause == FINISHED
+                    break
+                else
+                    rethrow(exc)
                 end
-                if status == WORKING
-                    job = currentjob(wu)
-                    Δt = now(sim) - wu.t0   # time worked into that job
-                    job.completion += Δt/job.op_time
-                end
-                setstatus(FAILURE)
             else
                 rethrow(exc) # propagate exception
             end # if isa
@@ -191,18 +187,18 @@ create a new workunit, start a process on it and return it
                     work times (1: big, 100: small variation)
 - `timeslice::Number=0:` length of timeslice for multitasking, 0: no multitasking
 """
-function workunit(sim::DES, kind::Int64, name::String, description::String="",
-                 input::Int=1, wip::Int=1, output::Int=1,
-                 mtbf::Number=0, mttr::Number=0, alpha::Int=100,
-                 timeslice::Number=0)
-    wu = Workunit(name, description, kind,
-                PFQueue(name*"-IN", Resource(sim, input), Queue(Product), Array{PFlog{Int}, 1}[]),
-                PFQueue(name*"-JOB", Resource(sim, wip), Queue(Product), Array{PFlog{Int}, 1}[]),
-                PFQueue(name*"-OUT", Resource(sim, output), Queue(Product), Array{PFlog{Int}, 1}[]),
-                alpha, mtbf, mttr, timeslice, 0.0, Array{PFlog{Int}, 1}[])
-    proc = @schedule work(sim, wu, do_work)
+function workunit(sim::DES, kind::Int64, workfunc, name::String,
+                  description::String="", input::Int=1, wip::Int=1, output::Int=1,
+                  mtbf::Number=0, mttr::Number=0, alpha::Int=100,
+                  timeslice::Number=0)
+    wu = Workunit(name, description, kind, PFQueue(name*"-IN", sim, input),
+                  Products(), PFQueue(name*"-OUT", sim, output), alpha,
+                  mtbf, mttr, timeslice, sim.time, sim.time, PFlog[])
+    proc = @async work(sim, wu, workfunc)
+    register(sim, proc)
     if mtbf > 0
-        @schedule failure(sim, proc, mtbf)
+        f = @async failure(sim, proc, mtbf)
+        register(sim, f)
     end
     wu
 end
@@ -223,7 +219,7 @@ function machine(sim::DES, name::String; description::String="",
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
                 timeslice::Number=0)
-    workunit(sim, MACHINE, name, description,
+    workunit(sim, MACHINE, do_work, name, description,
              input, wip, output, mtbf, mttr, alpha, timeslice)
 end
 
@@ -231,7 +227,7 @@ end
     worker(sim::DES, name::String; description::String="",
            mtbf::Number=0, mttr::Number=0,
            input::Int=1, wip::Int=1, output::Int=1, alpha::Int=1,
-           timeslice::Number=0)
+           timeslice::Number=0, multitasking::Bool=false)
 
 create a new worker, start a process on it and return it
 wrapper function for workunit.
@@ -242,9 +238,10 @@ see workunit
 function worker(sim::DES, name::String; description::String="",
                 input::Int=1, wip::Int=1, output::Int=1,
                 mtbf::Number=0, mttr::Number=0, alpha::Int=1,
-                timeslice::Number=0)
-    workunit(sim, WORKER, name, description,
-             input, wip, output, mtbf, mttr, alpha, timeslice)
+                timeslice::Number=0, multitasking::Bool=false)
+    workfunc = (multitasking ? do_multitask : do_work)
+    workunit(sim, WORKER, workfunc, name, description, input, wip, output,
+             mtbf, mttr, alpha, timeslice)
 end
 
 """
