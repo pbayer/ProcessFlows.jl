@@ -31,7 +31,7 @@ function loadstep(wus::Workunits, w::Array{String,1})
 end
 
 loadstep(wus::Workunits, w::String) = load(wus, [w])
-loadstep(wus::Workunits) = load(wus, String[])
+loadstep(wus::Workunits) = loadstep(wus, String[])
 
 """
     loadtime(wus::Workunits, w::Array{String, 1}=[])

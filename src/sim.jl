@@ -8,7 +8,11 @@
 # --------------------------------------------
 
 struct SimException <: Exception
-  cause :: Any
+  cause::Any
+  time::Float64
+  function SimException(cause::Any, time::Float64=0.0)
+      new(cause, time)
+  end
 end
 
 mutable struct Event
@@ -126,7 +130,7 @@ function removetask(sim::DES, task::Task)
 end
 
 """
-    interrupttask(sim::DES, task::Task, exc::Exception=SimException(FAILURE), value::Any=sim.time)
+    interrupttask(sim::DES, task::Task, exc::Exception=SimException(FINISHED), value::Any=sim.time)
 
 interrupt a task with exception exc. Before remove all scheduling entries
 for this task from sim.
@@ -136,7 +140,7 @@ for this task from sim.
 - `task::Task`: task
 - `exc::Exception=SimException(FAILURE)`: exception to throw
 """
-function interrupttask(sim::DES, task::Task, exc::Exception=SimException(FAILURE))
+function interrupttask(sim::DES, task::Task, exc::Exception=SimException(FINISHED))
     removetask(sim, task)
     schedule(task, exc, error=true)
 end

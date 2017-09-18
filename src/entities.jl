@@ -33,10 +33,11 @@ mutable struct PFQueue
     name::String                # name
     env::DES                    # simulation environment
     queue::Channel              # queue of products
+    time::Float64               # time of last queueing event
     log::Array{PFlog{Int}, 1}   # log of queue lengths over simulation time
 
     function PFQueue(name::String, env::DES, capacity::Int=1)
-        new(name, env, Channel(capacity), PFlog[])
+        new(name, env, Channel(capacity), 0.0, PFlog[])
     end
 end
 
@@ -44,13 +45,13 @@ mutable struct Job
     item::Int                   # which item the job belongs to
     job::String                 # name of the job
     wus::Array{String,1}        # workunits capable to do the job
-    plan_time::Float64             # the planned execution time
-    op_time::Float64               # internal: the scheduled execution time
-    completion::Float64            # internal: the job's completion rate
+    plan_time::Float64          # the planned execution time
+    op_time::Float64            # internal: the scheduled execution time
+    completion::Float64         # internal: the job's completion rate
     status::Int                 # the job's status
     wu::String                  # on which workunit is the job done
-    start_time::Float64            # when was it started
-    end_time::Float64              # when was it finished
+    start_time::Float64         # when was it started
+    end_time::Float64           # when was it finished
     batch_size::Int             # batch size
     target::String              # name of target for transport jobs
 
@@ -71,8 +72,8 @@ mutable struct Product
     jobs::Array{Job,1}          # sequence of jobs
     pjob::Int                   # pointer to job
     status::Int                 # processing status
-    start_time::Float64            # when was it started
-    end_time::Float64              # when was it finished
+    start_time::Float64         # when was it started
+    end_time::Float64           # when was it finished
 
     function Product(code::Int, item::Int, name::String, description::String,
                      order::String, jobs::Array{Job,1})

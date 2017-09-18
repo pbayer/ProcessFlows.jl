@@ -39,15 +39,25 @@ function repTime(wu::Workunit, alpha=1)
 end
 
 """
-    failure(sim::DES, proc::Task, mttr::Real)
+    failure(sim::DES, task::Task, mtbf::Real)
 
-interrupt a process with a FAILURE after rand(Exponential(mttr))
+interrupt a task with a FAILURE after rand(Exponential(mttr))
 """
-function failure(sim::DES, proc::Task, mtbf::Real)
+function failure(sim::DES, task::Task, mtbf::Real)
+    timer = sim.time
     while true
-        Δt = rand(Exponential(mtbf))
-        delay(sim, Δt)
-        interrupttask(sim, proc)
+        try
+            Δt = rand(Exponential(mtbf))
+            delayuntil(sim, timer+Δt)
+            timer += Δt
+            interrupttask(sim, task, SimException(FAILURE, timer))
+        catch exc
+            if isa(exc, SimException) && exc.cause == FINISHED
+                break
+            else
+                rethrow(exc)
+            end
+        end
     end
 end
 
@@ -92,12 +102,12 @@ on a Workunit variable.
 function work(sim::DES, wu::Workunit, workfunc::Function)
 
     function setstatus(newstatus)
-        push!(wu.log, PFlog(now(sim), newstatus))
+        push!(wu.log, PFlog(wu.time, newstatus))
         status = newstatus
     end
 
     function getnewjob()
-        p = dequeue!(wu.input)
+        (p, wu.time) = dequeue!(wu.input, wu.time)
         push!(wu.wip, p)
         p.jobs[p.pjob].status = PROGRESS
         p.jobs[p.pjob].start_time = wu.time
@@ -109,7 +119,7 @@ function work(sim::DES, wu::Workunit, workfunc::Function)
             p = pop!(wu.wip)
             p.jobs[p.pjob].status = DONE
             p.jobs[p.pjob].end_time = wu.time
-            enqueue!(wu.output, p)
+            wu.time = enqueue!(wu.output, p, wu.time)
         end
         setstatus(IDLE)
         call_scheduler()
@@ -142,13 +152,13 @@ function work(sim::DES, wu::Workunit, workfunc::Function)
         catch exc
             if isa(exc, SimException)
                 if exc.cause == FAILURE
-                    wu.time = sim.time     # synchronize wu.time to simulation time
+                    wu.time = exc.time     # time sync
                     if status != FAILURE
                         oldstatus = status
                     end
                     if status == WORKING
                         job = currentjob(wu)
-                        Δt = maximum([wu.time - wu.t0, 0])   # time worked into that job
+                        Δt = max(wu.time - wu.t0, 0)   # time worked into that job
                         job.completion += Δt/job.op_time
                     end
                     setstatus(FAILURE)
