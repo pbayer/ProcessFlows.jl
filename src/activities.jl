@@ -44,19 +44,19 @@ end
 interrupt a task with a FAILURE after rand(Exponential(mttr))
 """
 function failure(sim::DES, task::Task, mtbf::Real)
-    timer = sim.time
+    timer = 0.0
     while true
         try
             Δt = rand(Exponential(mtbf))
-            delayuntil(sim, timer+Δt)
-            timer += Δt
+            ft = timer + Δt
+            for i in 1:floor(Int, ft-timer)
+                delayuntil(sim, timer+i)
+            end
+            delayuntil(sim, ft)
+            timer = ft
             interrupttask(sim, task, SimException(FAILURE, timer))
         catch exc
-            if isa(exc, SimException) && exc.cause == FINISHED
-                break
-            else
-                rethrow(exc)
-            end
+            break
         end
     end
 end
@@ -126,6 +126,11 @@ function work(sim::DES, wu::Workunit, workfunc::Function)
     end
 
     wu.time = sim.time
+    if wu.mtbf > 0
+        task = current_task()
+        f = @async failure(sim, task, wu.mtbf)
+        register(sim, f)
+    end
     status = IDLE
     push!(wu.log, PFlog(wu.time, status))
     oldstatus = IDLE
@@ -138,13 +143,15 @@ function work(sim::DES, wu::Workunit, workfunc::Function)
                 finishjob()
             elseif status == WORKING
                 workfunc(sim, wu)
-                if !isfull(wu.output)
-                    finishjob()
-                else
+                if isfull(wu.output) || wu.output.time > wu.time
                     setstatus(BLOCKED)
+                else
+                    finishjob()
                 end
             elseif status == FAILURE      # request repair
-                delayuntil(sim, wu.time + repTime(wu))
+                rt = repTime(wu)
+                delayuntil(sim, wu.time + rt)
+                wu.time += rt
                 setstatus(oldstatus)
             else
                 throw(ArgumentError(@sprintf("%s: %d status not defined", wu.name, status)))
@@ -206,10 +213,6 @@ function workunit(sim::DES, kind::Int64, workfunc, name::String,
                   mtbf, mttr, timeslice, sim.time, sim.time, PFlog[])
     proc = @async work(sim, wu, workfunc)
     register(sim, proc)
-    if mtbf > 0
-        f = @async failure(sim, proc, mtbf)
-        register(sim, f)
-    end
     wu
 end
 

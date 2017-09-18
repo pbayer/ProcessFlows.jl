@@ -143,25 +143,49 @@ for this task from sim.
 function interrupttask(sim::DES, task::Task, exc::Exception=SimException(FINISHED))
     removetask(sim, task)
     schedule(task, exc, error=true)
+    yield()
 end
 
+function clock(sim::DES)
+    timer = sim.time
+    while true
+        try
+            timer += 1
+            delayuntil(sim, timer)
+        catch
+            break
+        end
+    end
+end
+
+#
 function watchdog(sim::DES, task::Task)
     t0 = sim.time
     while true
         sleep(0.1)
-        if sim.time == t0
-            task.exception = SimException(IDLE)
-            schedule(task, SimException(IDLE), error=true)
+        try
+            if sim.time == t0
+                if task.state != :done
+                    schedule(task, SimException(IDLE), error=true)
+                end
+                break
+            end
+            t0 = sim.time
+        catch
             break
         end
-        t0 = sim.time
     end
 end
 
 function terminateclients(sim::DES)
     for i in keys(sim.clients)
-        if i.state != :done
-            schedule(i, SimException(FINISHED), error=true)
+        try
+            if i.state != :done
+                schedule(i, SimException(FINISHED), error=true)
+                yield()
+            end
+        catch exc
+            continue
         end
     end
 end
@@ -194,7 +218,9 @@ function simulate(sim::DES, time::Number; finish::Bool=true)
 
     stime = sim.time + time; t = 0
     myself = current_task()
-    @async watchdog(sim, myself)
+    w = @async watchdog(sim, myself)
+#    c = @async clock(sim)
+#    register(sim, w)
     t0 = now()
     while t < stime
         try
@@ -247,6 +273,6 @@ function simulate(sim::DES, time::Number; finish::Bool=true)
     if sim.termination == IDLE
         println(" - idle after $(sim.index) events")
     elseif sim.termination == DONE
-        println(" - time:$t ≥ stime after $(sim.index) events")
+        println(" - next event at:$(round(t,2)) ≥ stime after $(sim.index) events")
     end
 end
