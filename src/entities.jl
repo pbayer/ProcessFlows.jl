@@ -24,23 +24,6 @@ const TRANSPORT = 2
 const INSPECTOR = 3
 const STORE = 4
 
-mutable struct PFlog{N<:Number}
-    time::Float64
-    status::N
-end
-
-mutable struct PFQueue
-    name::String                # name
-    env::DES                    # simulation environment
-    queue::Channel              # queue of products
-    time::Float64               # time of last queueing event
-    log::Array{PFlog{Int}, 1}   # log of queue lengths over simulation time
-
-    function PFQueue(name::String, env::DES, capacity::Int=1)
-        new(name, env, Channel(capacity), 0.0, PFlog[])
-    end
-end
-
 mutable struct Job
     item::Int                   # which item the job belongs to
     job::String                 # name of the job
@@ -93,6 +76,24 @@ mutable struct Planned
 end
 
 Plan = Array{Planned, 1}
+
+mutable struct PFlog{N<:Number}
+    time::Float64
+    status::N
+end
+
+mutable struct PFQueue
+    name::String                # name
+    env::DES                    # simulation environment
+    queue::Channel              # queue of products
+    time::Float64               # time of last queueing event
+    backup::Any                 # backup storage for reference to last product
+    log::Array{PFlog{Int}, 1}   # log of queue lengths over simulation time
+
+    function PFQueue(name::String, env::DES, capacity::Int=1)
+        new(name, env, Channel(capacity), 0.0, nothing, PFlog[])
+    end
+end
 
 mutable struct Workunit
     name::String                # name

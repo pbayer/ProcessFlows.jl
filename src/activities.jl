@@ -49,9 +49,6 @@ function failure(sim::DES, task::Task, mtbf::Real)
         try
             Δt = rand(Exponential(mtbf))
             ft = timer + Δt
-            for i in 1:floor(Int, ft-timer)
-                delayuntil(sim, timer+i)
-            end
             delayuntil(sim, ft)
             timer = ft
             interrupttask(sim, task, SimException(FAILURE, timer))
@@ -107,19 +104,33 @@ function work(sim::DES, wu::Workunit, workfunc::Function)
     end
 
     function getnewjob()
-        (p, wu.time) = dequeue!(wu.input, wu.time)
-        push!(wu.wip, p)
-        p.jobs[p.pjob].status = PROGRESS
-        p.jobs[p.pjob].start_time = wu.time
-        call_scheduler()
+        try
+            (p, wu.time) = dequeue!(wu.input, wu.time)
+            push!(wu.wip, p)
+            p.jobs[p.pjob].status = PROGRESS
+            p.jobs[p.pjob].start_time = wu.time
+            call_scheduler()
+        catch ex
+            if isa(ex, SimException)
+                p = ex.value
+                if p != nothing
+                    push!(wu.wip, p)
+                    p.jobs[p.pjob].status = PROGRESS
+                    p.jobs[p.pjob].start_time = wu.time
+                    call_scheduler()
+                end
+            end
+            rethrow(ex)
+        end
     end
 
     function finishjob()
         if !isempty(wu.wip)
-            p = pop!(wu.wip)
+            p = wu.wip[1]
+            wu.time = enqueue!(wu.output, p, wu.time)
             p.jobs[p.pjob].status = DONE
             p.jobs[p.pjob].end_time = wu.time
-            wu.time = enqueue!(wu.output, p, wu.time)
+            shift!(wu.wip) # shift only after enqueue! succeeded
         end
         setstatus(IDLE)
         call_scheduler()
@@ -137,13 +148,17 @@ function work(sim::DES, wu::Workunit, workfunc::Function)
     while true
         try
             if status == IDLE           # get a new job
-                getnewjob()
-                setstatus(WORKING)
+                if !isempty(wu.wip)
+                    setstatus(BLOCKED)
+                else
+                    getnewjob()
+                    setstatus(WORKING)
+                end
             elseif status == BLOCKED      # output buffer is full
                 finishjob()
             elseif status == WORKING
                 workfunc(sim, wu)
-                if isfull(wu.output) || wu.output.time > wu.time
+                if isfull(wu.output)
                     setstatus(BLOCKED)
                 else
                     finishjob()

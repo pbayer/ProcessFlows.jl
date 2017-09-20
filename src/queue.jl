@@ -33,12 +33,18 @@ put p into the pq.queue channel. If isfull(pq) wait.
 - `time`: time at which the enqueueing takes place
 """
 function enqueue!(pq::PFQueue, p::Product, time::Float64=pq.env.time)::Float64
+    if isready(pq.queue)
+        pq.backup = fetch(pq.queue)
+    else
+        pq.backup = p
+    end
+    pq.time = max(time, pq.time)
     put!(pq.queue, p)
     pq.time = max(time, pq.time)
     l = PFlog(pq.time, length(pq)) # log queue length
     push!(pq.log, l)
     pq.env.index +=1 # increase simulation index
-    pq.time
+    return pq.time
 end
 
 """
@@ -55,10 +61,38 @@ wait for something in the queue, remove it from its front and return it.
 - `pq.time`: time at which the dequeueing takes place
 """
 function dequeue!(pq::PFQueue, time::Float64=pq.env.time)
-    p = take!(pq.queue)
-    pq.time = max(pq.time, time)
-    l = PFlog(pq.time, length(pq)) # log queue length
-    push!(pq.log, l)
-    pq.env.index +=1 # increase simulation index
-    (p, pq.time)
+    try
+        p = take!(pq.queue)
+        pq.time = max(pq.time, time)
+        l = PFlog(pq.time, length(pq)) # log queue length
+        push!(pq.log, l)
+        pq.env.index +=1 # increase simulation index
+        pq.backup = nothing
+        return (p, pq.time)
+    catch ex
+        #println("dequeue at time:$(round(time, 2)), ex:$ex")
+        if isa(ex, SimException)
+            p = nothing
+            if pq.backup != nothing
+                p = pq.backup
+                pq.time = max(ex.time, pq.time, time)
+                l = PFlog(pq.time, length(pq)) # log queue length
+                push!(pq.log, l)
+                pq.env.index +=1 # increase simulation index
+            end
+            throw(SimException(ex.cause, pq.time, p))
+        elseif isa(ex, ErrorException)
+            if pq.backup != nothing
+                pq.time = max(pq.time, time)
+                l = PFlog(pq.time, length(pq)) # log queue length
+                push!(pq.log, l)
+                pq.env.index +=1 # increase simulation index
+                return (pq.backup, pq.time)
+            else
+                rethrow(ex)
+            end
+        else
+            rethrow(ex)
+        end
+    end
 end

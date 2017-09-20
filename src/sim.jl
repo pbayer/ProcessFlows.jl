@@ -10,8 +10,9 @@
 struct SimException <: Exception
   cause::Any
   time::Float64
-  function SimException(cause::Any, time::Float64=0.0)
-      new(cause, time)
+  value::Any
+  function SimException(cause::Any, time::Float64=0.0, value::Any=nothing)
+      new(cause, time, value)
   end
 end
 
@@ -22,12 +23,9 @@ mutable struct Event
     channel::Channel{Any}
     task::Task
 
-    function Event(time::Float64, value::Any=time, error::Bool=false)
-        new(time, value, error, Channel{Any}(0), current_task())
-    end
-
-    function Event(time::Int, value::Any=time, error::Bool=false)
-        new(float(time), value, error, Channel{Any}(0), current_task())
+    function Event(time::Number, value::Any=time, error::Bool=false,
+                   channel::Channel=Channel{Any}(0), task::Task=current_task())
+        new(float(time), value, error, channel, task)
     end
 end
 
@@ -79,7 +77,6 @@ function delayuntil(sim::DES, time::Number, value::Any=time, error::Bool=false)
     put!(sim.request, ev)
     take!(ev.channel)
 end
-
 
 """
     delay(sim::DES, time::Float64; error::Bool=false)
@@ -146,31 +143,13 @@ function interrupttask(sim::DES, task::Task, exc::Exception=SimException(FINISHE
     yield()
 end
 
-function clock(sim::DES)
-    timer = sim.time
+function clock(ch::Channel, timer::Number=0)
     while true
         try
-            timer += 1
-            delayuntil(sim, timer)
-        catch
-            break
-        end
-    end
-end
-
-#
-function watchdog(sim::DES, task::Task)
-    t0 = sim.time
-    while true
-        sleep(0.1)
-        try
-            if sim.time == t0
-                if task.state != :done
-                    schedule(task, SimException(IDLE), error=true)
-                end
-                break
+            if timer > 0
+                sleep(timer)
             end
-            t0 = sim.time
+            take!(ch)
         catch
             break
         end
@@ -191,6 +170,26 @@ function terminateclients(sim::DES)
 end
 
 """
+    schedule_event(sim::DES, ev::Event)
+
+schedule a simulation event for execution
+"""
+function schedule_event(sim::DES, ev::Event)
+    if haskey(sim.times, ev.time)
+        push!(sim.events[sim.times[ev.time]], ev)
+    else
+        sim.index += 1
+        sim.times[ev.time] = sim.index
+        sim.sched[sim.index] = ev.time
+        sim.events[sim.index] = [ ev ]
+    end
+    if !(ev.task in keys(sim.clients))
+        register(sim, ev.task)
+    end
+    push!(sim.clients[ev.task], sim.index)
+end
+
+"""
     simulate(sim::DES, time::Number; finish::Bool=false)
 
 run a simulation for sim.time + time
@@ -202,46 +201,34 @@ run a simulation for sim.time + time
   This will throw a SimException(FINISHED) to them. Also in this case the
   simulation cannot be continued afterwards.
 """
-function simulate(sim::DES, time::Number; finish::Bool=true)
-
-    function schedule_event(ev)
-        if haskey(sim.times, ev.time)
-            push!(sim.events[sim.times[ev.time]], ev)
-        else
-            sim.index += 1
-            sim.times[ev.time] = sim.index
-            sim.sched[sim.index] = ev.time
-            sim.events[sim.index] = [ ev ]
-        end
-        push!(sim.clients[ev.task], sim.index)
-    end
-
+function simulate(sim::DES, time::Number; finish::Bool=true, accuracy::Number=1)
     stime = sim.time + time; t = 0
-    myself = current_task()
-    w = @async watchdog(sim, myself)
-#    c = @async clock(sim)
-#    register(sim, w)
+    clk = Channel(0)
+    ctask= @async clock(clk)
+    for i in sim.time:accuracy:(stime+accuracy)
+        schedule_event(sim, Event(i,i,false,clk,ctask))
+    end
     t0 = now()
     while t < stime
         try
             if isready(sim.request) || !isempty(sim.sched)
                 while isready(sim.request) # if requests are available take them and proceed
                     ev = take!(sim.request)
-                    schedule_event(ev)
+                    schedule_event(sim, ev)
                 end
             else
                 ev = take!(sim.request) # wait for requests
-                schedule_event(ev)
+                schedule_event(sim, ev)
             end
             if isempty(sim.sched)
-                break
+                throw(SimException(IDLE))
             else
                 (i, t) = DataStructures.peek(sim.sched)
     #            println("next event $i at $t")
                 sim.time = t
                 for ev ∈ sim.events[i]
                     if ev.error
-                        interrupttask(sim, ev.task, SimException(FAILURE))
+                        interrupttask(sim, ev.task, ev.value)
                     else
                         filter!(x->x!=i, sim.clients[ev.task])
                         DataStructures.dequeue!(sim.sched)
