@@ -36,7 +36,7 @@ function create_mps(plan::Plan, order::Orders, leveled::Bool=true) :: Products
                         job.item = item
                     end
                     p = Product(pl.code, item, pl.name, pl.description,
-                                pl.order, jobs, 0, OPEN, 0.0, 0.0)
+                                pl.order, jobs)
                     push!(mps, p)
                 end
                 index[i] = k + 1
@@ -51,7 +51,7 @@ function create_mps(plan::Plan, order::Orders, leveled::Bool=true) :: Products
                     job.item = item
                 end
                 p = Product(pl.code, item, pl.name, pl.description,
-                            pl.order, jobs, 0, OPEN, 0.0, 0.0)
+                            pl.order, jobs)
                 push!(mps, p)
             end
         end
@@ -66,39 +66,48 @@ Cycle through all work units in `wus`, look for finished jobs (in `wu.output`)
 and move them to the next free work unit.
 """
 function scheduler(sim::DES, wus::Workunits)
+    timer = sim.time
     global sched
     while true
-        for wu ∈ values(wus)
-            while !isempty(wu.output)                  # look for ready products
-                p = front(wu.output)                   # get first product
-                if p.pjob < length(p.jobs)             # are there yet open jobs?
-                    job = p.jobs[p.pjob+1]
-                    nextw = ""
-                    len = 1e6
-                    for target ∈ job.wus               # look for possible targets
-                        if !isfull(wus[target].input)  # get shortest input queue
-                            if length(wus[target].input) < len
-                                len = length(wus[target].input)
-                                nextw = target
+        try
+            for wu ∈ values(wus)
+                while !isempty(wu.output)                  # look for ready products
+                    p = front(wu.output)                   # get first product
+                    if p.pjob < length(p.jobs)             # are there yet open jobs?
+                        job = p.jobs[p.pjob+1]
+                        nextw = ""
+                        len = 1e6
+                        for target ∈ job.wus               # look for possible targets
+                            if !isfull(wus[target].input)  # get shortest input queue
+                                if length(wus[target].input) < len
+                                    len = length(wus[target].input)
+                                    nextw = target
+                                end
                             end
                         end
+                        if nextw ≠ ""                      # found something
+                            (p, timer) = dequeue!(wu.output)
+                            enqueue!(wus[nextw].input, p)
+                            p.pjob += 1                    # set pointer to next job
+                            p.jobs[p.pjob].wu = nextw      # trace workunit
+                        else
+                            break                          # cannot schedule further
+                        end # if nextw
+                    else                                   # product has no open jobs
+                        (p, timer) = dequeue!(wu.output)
+                        p.status = FINISHED
+                        enqueue!(wus["OUT"].input, p)
                     end
-                    if nextw ≠ ""                      # found something
-                        p = dequeue!(wu.output)
-                        enqueue!(wus[nextw].input, p)
-                        p.pjob += 1                    # set pointer to next job
-                        p.jobs[p.pjob].wu = nextw      # trace workunit
-                    else
-                        break                          # cannot schedule further
-                    end # if nextw
-                else                                   # product has no open jobs
-                    p = dequeue!(wu.output)
-                    p.status = FINISHED
-                    enqueue!(wus["OUT"].input, p)
-                end
-            end # if !isempty
-        end # for wu
-        take!(sched) # wait for requests
+                end # if !isempty
+            end # for wu
+            take!(sched) # wait for requests
+        catch ex
+            if isa(ex, SimException) && ex.cause == FINISHED
+                break
+            else
+                rethrow(ex)
+            end
+        end
     end # while true
 end # function
 
@@ -116,10 +125,18 @@ release products into a production system
 """
 function source(sim::DES, wu::Workunit, mps::Products)
     while length(mps) > 0
-        p = shift!(mps)
-        p.start_time = now(sim)
-        enqueue!(wu.output, p)
-        call_scheduler()
+        try
+            p = shift!(mps)
+            p.start_time = now(sim)
+            enqueue!(wu.output, p)
+            call_scheduler()
+        catch ex
+            if isa(ex, SimException) && ex.cause == FINISHED
+                break
+            else
+                rethrow(ex)
+            end
+        end
     end
 end
 
@@ -137,10 +154,19 @@ collect finished products from a production system
                       calling this procedure
 """
 function sink(sim::DES, wu::Workunit, output::Products)
+    timer = sim.time
     while true
-        p = dequeue!(wu.input)
-        p.end_time = now(sim)
-        push!(output, p)
+        try
+            (p, timer) = dequeue!(wu.input)
+            p.end_time = now(sim)
+            push!(output, p)
+        catch ex
+            if isa(ex, SimException) && ex.cause == FINISHED
+                break
+            else
+                rethrow(ex)
+            end
+        end
     end
 end
 
@@ -150,22 +176,18 @@ end
 get the MPS and a production system and start source, sink and scheduling
 """
 function start_scheduling(sim::DES, wus::Workunits, mps::Products, output::Products)
-    global sched = Resource(sim, 1)
     w1 = Workunit("IN", "Input", STORE,
-                  PFQueue("DUMMY", Resource(sim, 1), Queue(Product), Array{PFlog{Int}, 1}[]),
-                  PFQueue("DUMMY", Resource(sim, 1), Queue(Product), Array{PFlog{Int}, 1}[]),
-                  PFQueue("INPUT", Resource(sim, 10), Queue(Product), Array{PFlog{Int}, 1}[]),
-                  1000, 0, 0, 0, 0.0, Array{PFlog{Int}, 1}[])
+                  PFQueue("DUMMY", sim, 1), Products(), PFQueue("INPUT", sim, 10),
+                  1000, 0, 0, 0, 0.0, 0.0, PFlog[])
     wus["IN"] = w1
-    @async source(sim, w1, mps)
+    s1 = @async source(sim, w1, mps)
     w2 = Workunit("OUT", "Output", STORE,
-                PFQueue("OUTPUT", Resource(sim, 10), Queue(Product), Array{PFlog{Int}, 1}[]),
-                PFQueue("DUMMY", Resource(sim, 1), Queue(Product), Array{PFlog{Int}, 1}[]),
-                PFQueue("DUMMY", Resource(sim, 10), Queue(Product), Array{PFlog{Int}, 1}[]),
-                1000, 0, 0, 0, 0.0, Array{PFlog{Int}, 1}[])
+                PFQueue("OUTPUT", sim, 10), Products(), PFQueue("DUMMY", sim, 1),
+                1000, 0, 0, 0, 0.0, 0.0, PFlog[])
     wus["OUT"] = w2
-    @async sink(sim, w2, output)
-    @async scheduler(sim, wus)
+    s2 = @async sink(sim, w2, output)
+    s3 = @async scheduler(sim, wus)
+    register(sim, [s1, s2, s3])
 end
 
 

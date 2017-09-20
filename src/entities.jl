@@ -18,11 +18,11 @@ const FINISHED = 5
 
 mstatus = ("idle", "working", "failure", "blocked")
 
-const MACHINE = 0
-const WORKER = 1
-const TRANSPORT = 2
-const INSPECTOR = 3
-const STORE = 4
+const MACHINE = 1
+const WORKER = 2
+const TRANSPORT = 3
+const INSPECTOR = 4
+const STORE = 5
 
 mutable struct Job
     item::Int                   # which item the job belongs to
@@ -60,7 +60,7 @@ mutable struct Product
 
     function Product(code::Int, item::Int, name::String, description::String,
                      order::String, jobs::Array{Job,1})
-        new(code, item, name, description, order, jobs, 1, OPEN, 0.0, 0.0)
+        new(code, item, name, description, order, jobs, 0, OPEN, 0.0, 0.0)
     end
 end
 

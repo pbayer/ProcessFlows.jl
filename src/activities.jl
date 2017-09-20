@@ -219,7 +219,7 @@ create a new workunit, start a process on it and return it
                     work times (1: big, 100: small variation)
 - `timeslice::Number=0:` length of timeslice for multitasking, 0: no multitasking
 """
-function workunit(sim::DES, kind::Int64, workfunc, name::String,
+function workunit(sim::DES, kind::Int64, workfunc::Function, name::String,
                   description::String="", input::Int=1, wip::Int=1, output::Int=1,
                   mtbf::Number=0, mttr::Number=0, alpha::Int=100,
                   timeslice::Number=0)
@@ -253,9 +253,9 @@ end
 
 """
     worker(sim::DES, name::String; description::String="",
-           mtbf::Number=0, mttr::Number=0,
-           input::Int=1, wip::Int=1, output::Int=1, alpha::Int=1,
-           timeslice::Number=0, multitasking::Bool=false)
+            input::Int=1, wip::Int=1, output::Int=1,
+            mtbf::Number=0, mttr::Number=0, alpha::Int=1,
+            timeslice::Number=0, multitasking::Bool=false)
 
 create a new worker, start a process on it and return it
 wrapper function for workunit.

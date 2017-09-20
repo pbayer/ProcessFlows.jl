@@ -17,8 +17,26 @@ function readWorkunits(file::String, sim::DES) :: Workunits
     t = readtable(file)
     d = Workunits()
     for i ∈ 1:nrow(t)
-        wu = workunit(sim, t[i,3], t[i,1], t[i,2], t[i,4], t[i,5], t[i,6],
-                      t[i,8], t[i,9], t[i,7], t[i,10])
+        t[i,3]
+        kind = t[i,3]
+        wu = if kind == MACHINE
+            machine(sim, t[i,1], description=t[i,2],
+                    input=t[i,4], wip=t[i,5], output=t[i,6],
+                    mtbf=t[i,8], mttr=t[i,9], alpha=t[i,7], timeslice=t[i,10])
+        elseif kind == WORKER
+            worker(sim, t[i,1], description=t[i,2],
+                   input=t[i,4], wip=t[i,5], output=t[i,6],
+                   mtbf=t[i,8], mttr=t[i,9], alpha=t[i,7],
+                   timeslice=t[i,10], multitasking=(t[i,11] == 1))
+        elseif kind == TRANSPORT
+            error("TRANSPORT not yet implemented")
+        elseif kind == INSPECTOR
+            error("INSPECTOR not yet implemented")
+        elseif kind == STORE
+            error("STORE not yet implemented")
+        else
+            error("wrong type")
+        end
         d[t[i,1]] = wu
     end
     d
@@ -35,9 +53,8 @@ function readOrders(file::String) :: Orders
     for ord ∈ Set(t[:order])
         t1 = t[t[:order] .== ord, :]
         for i ∈ 1:nrow(t1)
-            job = Job(0, t1[i,2], split(t1[i,3],","), t1[i,4], 0.0, 0.0,
-                      OPEN, "", 0.0, 0.0,
-                      t1[i,5], isna(t1[i,6]) ? "" : t1[i,6])
+            job = Job(0, t1[i,2], String.(split(t1[i,3],",")), t1[i,4],
+                      batch_size=t1[i,5], target=isna(t1[i,6]) ? "" : t1[i,6])
             if haskey(d, ord)
                 push!(d[ord], job)
             else

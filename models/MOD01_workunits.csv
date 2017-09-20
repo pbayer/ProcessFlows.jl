@@ -1,6 +1,6 @@
-name,description,kind,input,jobs,output,alpha,mtbf,mttr,timeslice
-MC01,machining centre,1,1,1,1,100,500,10,0
-MC02,machining centre,1,1,1,1,100,500,10,0
-MC03,machining centre,1,1,1,1,100,500,10,0
-MC04,machining centre,1,1,1,1,100,500,10,0
-MC05,machining centre,1,1,1,1,100,500,10,0
+name,description,kind,input,jobs,output,alpha,mtbf,mttr,timeslice,multitasking
+MC01,machining centre,1,1,1,1,100,500,10,0,0
+MC02,machining centre,1,1,1,1,100,500,10,0,0
+MC03,machining centre,1,1,1,1,100,500,10,0,0
+MC04,machining centre,1,1,1,1,100,500,10,0,0
+MC05,machining centre,1,1,1,1,100,500,10,0,0

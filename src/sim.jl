@@ -7,6 +7,8 @@
 # license: MIT
 # --------------------------------------------
 
+event_horizon = 50
+
 struct SimException <: Exception
   cause::Any
   time::Float64
