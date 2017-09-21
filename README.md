@@ -14,15 +14,6 @@ simulate the **product flow** in production, development and service systems.
 Since **product** can mean different things, it can simulate production, project,
 customer or even patient flow …
 
-### Notebooks
-
-- [03 Simulation of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb) describes the main assumptions implemented in `Pflow`.
-- [04 Variation in Projects and Production](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/04%20Variation%20in%20Projects%20and%20Production.ipynb) describes, how `PFlow` treats variation.
-- [05 Parametrization of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/05%20Parametrization%20of%20Production%20Systems.ipynb) describes, why it is possible to parametrize simulations of
-production systems and projects by simple lists.
-- [06 The use of graphs in PFlow](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/06%20The%20use%20of%20graphs%20in%20PFlow.ipynb) is the 1st demonstration of the `PFlow` prototype in a notebook.
-- [07 First PFlow benchmarks](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/07%20First%20PFlow%20benchmarks.ipynb) is the first benchmark of the `PFlow` prototype.
-
 ### Simple approach
 
 `PFlow` provides a model kit for basic entities of production systems like
@@ -41,7 +32,30 @@ document, store and compare the results.
 together with `PFlow's` simple approach – to model and simulate even large systems
 as automotive plants, multiprojects or hospitals.
 
-### Status of Project (as of 09/2017)
+## Documentation
+
+### Notebooks
+
+`PFlow` now uses Julia coroutines and provides a simple framework for discrete
+event simulation. The first two notebooks demonstrate this for simple simulations:
+
+- [01 A Post Office](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/01%20A%20Post%20Office.ipynb)
+shows a queueing simulation.
+- [02 Goldratt's Dice Game](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/02%20Goldratt's%20Dice%20Game.ipynb)
+shows a simulation of Goldratt's dice game, which is a much simplified production
+line simulation.
+
+The other notebooks show assumptions and applications of `PFlow.jl` for simulation
+of real product flow systems:
+
+- [03 Simulation of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb) describes the main assumptions implemented in `Pflow`.
+- [04 Variation in Projects and Production](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/04%20Variation%20in%20Projects%20and%20Production.ipynb) describes, how `PFlow` treats variation.
+- [05 Parametrization of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/05%20Parametrization%20of%20Production%20Systems.ipynb) describes, why it is possible to parametrize simulations of
+production systems and projects by simple lists.
+- [06 Visualization of Product Flow](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/06%20Visualization%20of%20Product%20Flow.ipynb) is the 1st demonstration of the `PFlow` prototype in a notebook.
+- [07 First PFlow benchmarks](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/07%20First%20PFlow%20benchmarks.ipynb) is the first benchmark of the `PFlow` prototype.
+
+## Status of Project (as of 09/2017)
 
 `PFlow` is in early development. Things are coming together quite quickly and a
 working prototype and some interesting results should be available in this
