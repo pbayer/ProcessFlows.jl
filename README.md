@@ -1,11 +1,5 @@
 # PFlow.jl
 
-## Notice
-
-`PFlow.jl` now uses Julia's coroutine functionality. The functions for discrete
-event simulation are in `src/sim.jl`. Queues in `src/queue.jl` are based on channels.
-
-----------------------
 
 ## Simulation of product flow
 
@@ -13,6 +7,9 @@ event simulation are in `src/sim.jl`. Queues in `src/queue.jl` are based on chan
 simulate the **product flow** in production, development and service systems.
 Since **product** can mean different things, it can simulate production, project,
 customer or even patient flow …
+
+`PFlow.jl` uses Julia's coroutines and channels for discrete
+event simulation in `src/sim.jl`and `src/queue.jl`.
 
 ### Simple approach
 
@@ -28,7 +25,7 @@ are read by `PFlow` in order to keep programming needs to a minimum.
 `PFlow` contains utility functions to run simulations and to visualize,
 document, store and compare the results.
 
-[`Julia`](https://julialang.org) allows a really fast simulation library, capable –
+[`Julia`](https://julialang.org) is a really fast simulation library, capable –
 together with `PFlow's` simple approach – to model and simulate even large systems
 as automotive plants, multiprojects or hospitals.
 
@@ -36,8 +33,8 @@ as automotive plants, multiprojects or hospitals.
 
 ### Notebooks
 
-`PFlow` now uses Julia coroutines and provides a simple framework for discrete
-event simulation. The first two notebooks demonstrate this for simple simulations:
+`PFlow` provides a simple framework for discrete
+event simulation. The first two notebooks demonstrate its general use:
 
 - [01 A Post Office](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/01%20A%20Post%20Office.ipynb)
 shows a queueing simulation.
@@ -45,7 +42,7 @@ shows a queueing simulation.
 shows a simulation of Goldratt's dice game, which is a much simplified production
 line simulation.
 
-The other notebooks show assumptions and applications of `PFlow.jl` for simulation
+The other notebooks show assumptions and applications of `PFlow.jl` for simulations
 of real product flow systems:
 
 - [03 Simulation of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb) describes the main assumptions implemented in `Pflow`.
@@ -54,6 +51,7 @@ of real product flow systems:
 production systems and projects by simple lists.
 - [06 Visualization of Product Flow](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/06%20Visualization%20of%20Product%20Flow.ipynb) is the 1st demonstration of the `PFlow` prototype in a notebook.
 - [07 First PFlow benchmarks](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/07%20First%20PFlow%20benchmarks.ipynb) is the first benchmark of the `PFlow` prototype.
+- [08 Intro to PFlow (Slides)](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/08%20Intro%20to%20PFlow%20(Slides).ipynb) is an Jupyter notebook with an slideshow, which can be viewed using [RISE](https://github.com/damianavila/RISE).
 
 ## Status of Project (as of 09/2017)
 
