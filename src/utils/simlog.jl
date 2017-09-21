@@ -10,19 +10,19 @@
 
 
 """
-    Simlog(vars::Dict{AbstractString, Any}
-           redict::Dict{AbstractString, AbstractString}
-           prefix::Dict{AbstractString, AbstractString}
-           measurements::Dict{AbstractString, Any})
+    Simlog(vars::Dict
+           redict::Dict
+           prefix::Dict
+           measurements::Dict)
 
 create, initialize and return a new SimLog containing
 access to variables and to measurements taken during simulation
 """
 mutable struct Simlog
-  vars::Dict{AbstractString, Any}
-  redict::Dict{AbstractString, AbstractString}
-  prefix::Dict{AbstractString, AbstractString}
-  measurements::Dict{AbstractString, Any}
+  vars::Dict
+  redict::Dict
+  prefix::Dict
+  measurements::Dict
 end
 
 
@@ -75,7 +75,7 @@ and initialise the `measurements` Dict
   e.g. Dict(1=>"A", 2=>"B")
 
 """
-function dict2log(simlog::Simlog, dict::Dict{Any, Any}; prefix::AbstractString="", redict=Dict())
+function dict2log(simlog::Simlog, dict::Dict; prefix::AbstractString="", redict=Dict())
   name = string(hash(dict))
   if !haskey(simlog.measurements, " time")
     simlog.measurements[" time"] = []
