@@ -8,12 +8,10 @@ simulate the **product flow** in production, development and service systems.
 Since **product** can mean different things, it can simulate production, project,
 customer or even patient flow …
 
-`PFlow.jl` uses Julia's coroutines and channels for discrete
-event simulation in `src/sim.jl`and `src/queue.jl`.
-
 ### Simple approach
 
-`PFlow` provides a model kit for basic entities of production systems like
+``PFlow` uses Julia's coroutines and channels for discrete event simulation
+and provides a model kit for basic entities of production systems like
 
 - work units,
 - orders/jobs,
@@ -43,12 +41,11 @@ shows a simulation of Goldratt's dice game, which is a much simplified productio
 line simulation.
 
 The other notebooks show assumptions and applications of `PFlow.jl` for simulations
-of real product flow systems:
+of product flow systems:
 
-- [03 Simulation of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb) describes the main assumptions implemented in `Pflow`.
+- [03 Simulation of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb) describes the main assumptions.
 - [04 Variation in Projects and Production](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/04%20Variation%20in%20Projects%20and%20Production.ipynb) describes, how `PFlow` treats variation.
-- [05 Parametrization of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/05%20Parametrization%20of%20Production%20Systems.ipynb) describes, why it is possible to parametrize simulations of
-production systems and projects by simple lists.
+- [05 Parametrization of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/05%20Parametrization%20of%20Production%20Systems.ipynb) describes, why it is possible to parametrize simulations of production systems and projects by simple lists.
 - [06 Visualization of Product Flow](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/06%20Visualization%20of%20Product%20Flow.ipynb) is the 1st demonstration of the `PFlow` prototype in a notebook.
 - [07 First PFlow benchmarks](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/07%20First%20PFlow%20benchmarks.ipynb) is the first benchmark of the `PFlow` prototype.
 - [08 Intro to PFlow (Slides)](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/08%20Intro%20to%20PFlow%20(Slides).ipynb) is an Jupyter notebook with an slideshow, which can be viewed using [RISE](https://github.com/damianavila/RISE).
