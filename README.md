@@ -6,7 +6,8 @@
 `PFlow.jl` is a [`Julia`](https://julialang.org) library, able to
 simulate the **product flow** in production, development and service systems.
 Since **product** can mean different things, it can simulate production, project,
-customer or even patient flow …
+customer or even patient flow … even of large systems
+as automotive plants, multiprojects or hospitals.
 
 ### Simple approach
 
@@ -18,29 +19,25 @@ and provides a model kit for basic entities of production systems like
 - materials/products.
 
 Those entities are collected and described in lists (`.csv`-files) which
-are read by `PFlow` in order to keep programming needs to a minimum.
-
-`PFlow` contains utility functions to run simulations and to visualize,
-document, store and compare the results.
-
-[`Julia`](https://julialang.org) is a really fast simulation library, capable –
-together with `PFlow's` simple approach – to model and simulate even large systems
-as automotive plants, multiprojects or hospitals.
+are read by `PFlow` in order to keep programming needs to a minimum. Utility
+functions allow to run simulations and to visualize, document, store and
+compare results.
 
 ## Documentation
 
 ### Notebooks
 
-`PFlow` provides a simple framework for discrete
-event simulation. The first two notebooks demonstrate its general use:
+These [`Jupyter`](http://jupyter.org/about.html) notebooks demonstrate `PFlow's`
+simple framework for discrete event simulation: `delay` and `delayuntil`
+combined with use of Julia's channels:
 
 - [01 A Post Office](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/01%20A%20Post%20Office.ipynb)
 shows a queueing simulation.
 - [02 Goldratt's Dice Game](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/02%20Goldratt's%20Dice%20Game.ipynb)
-shows a simulation of Goldratt's dice game, which is a much simplified production
+shows a simulation of Goldratt's dice game, which is a very simplified production
 line simulation.
 
-The other notebooks show assumptions and applications of `PFlow.jl` for simulations
+Further notebooks show `PFlow's` assumptions and applications for simulations
 of product flow systems:
 
 - [03 Simulation of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/03%20Simulation%20of%20Production%20Systems.ipynb) describes the main assumptions.
