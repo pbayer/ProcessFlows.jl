@@ -1,5 +1,13 @@
 # PFlow.jl
 
+## Notice
+
+This is a rewrite of `PFlow.jl` using Julia's coroutine functions. Since I
+give partly control to the Julia scheduler, I loose some accuracy and determinacy
+in the sequence of events. But I gain simplicity and development potential.
+
+----------------------
+
 ## Simulation of product flow
 
 `PFlow.jl` is a [`Julia`](https://julialang.org) library, able to
@@ -30,8 +38,7 @@ are read by `PFlow` in order to keep programming needs to a minimum.
 `PFlow` contains utility functions to run simulations and to visualize,
 document, store and compare the results.
 
-[`Julia`](https://julialang.org) (with [`SimJulia`](https://github.com/BenLauwens/SimJulia.jl))
-is maturing and can provide for a really fast simulation library, capable –
+[`Julia`](https://julialang.org) allows a really fast simulation library, capable –
 together with `PFlow's` simple approach – to model and simulate even large systems
 as automotive plants, multiprojects or hospitals.
 
