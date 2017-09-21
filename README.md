@@ -2,9 +2,8 @@
 
 ## Notice
 
-This is a rewrite of `PFlow.jl` using Julia's coroutine functions. Since I
-give partly control to the Julia scheduler, I loose some accuracy and determinacy
-in the sequence of events. But I gain simplicity and development potential.
+`PFlow.jl` now uses Julia's coroutine functionality. The functions for discrete
+event simulation are in `src/sim.jl`. Queues in `src/queue.jl` are based on channels.
 
 ----------------------
 

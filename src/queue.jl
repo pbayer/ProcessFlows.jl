@@ -31,6 +31,10 @@ put p into the pq.queue channel. If isfull(pq) wait.
 
 # returns
 - `time`: time at which the enqueueing takes place
+
+# exception handling
+Exceptions must be handled by the caller. In case of an exception the receiver
+(dequeue!) gets an `ErrorException` and can take the missing product from pq.backup.
 """
 function enqueue!(pq::PFQueue, p::Product, time::Float64=pq.env.time)::Float64
     if isready(pq.queue)
@@ -51,6 +55,7 @@ end
     dequeue!(pq::PFQueue, time::Float64=pq.env.time)
 
 wait for something in the queue, remove it from its front and return it.
+
 # Arguments
 - `pq::PFQueue`: buffer from which to dequeue
 - `time::Float64=pq.res.time`: time, at which a non-waiting dequeue occurs
@@ -59,6 +64,10 @@ wait for something in the queue, remove it from its front and return it.
 (p, time)
 - `p::Product`: dequeued product
 - `pq.time`: time at which the dequeueing takes place
+
+# exception handling
+- `SimException`: deliver pq.backup from `enqueue!` with the propagated exception.
+- `ErrorException`: if a pq.backup is present, deliver it, else propagate.
 """
 function dequeue!(pq::PFQueue, time::Float64=pq.env.time)
     try

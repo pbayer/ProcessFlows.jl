@@ -1,7 +1,13 @@
 # PFlow – ToDo
 
-Since `PFlow` is in early development, there remains a lot to do in order to make
-it fit for general use in simulation of production and project environments:
+### simulation engine: `sim.jl`
+
+after the implementation of the new simulation engine with coroutine based
+functionality program speed doesn't yet scale linearly since the PriorityQueue
+for scheduled events gets too long for long simulations.
+
+- [ ] (0.1) plan clock events only up to a certain event horizon
+- [ ] (0.2) implement a timer (for animation)
 
 ### core processing: `activities.jl`
 
@@ -19,6 +25,7 @@ it fit for general use in simulation of production and project environments:
 
 ### Documentation
 
+- [ ] (0.1) update the notebooks to use the new coroutine functionality
 - [ ] (0.1) API Documentation
 - [ ] (0.1) Outline
 - [ ] (0.1) Examples
