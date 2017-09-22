@@ -24,7 +24,7 @@ end
 """
     queuelog(wu::Workunit)
 
-return time and status of a work unit log
+return time and status of a PFQueue log
 """
 function queuelog(qu::PFQueue)
 end

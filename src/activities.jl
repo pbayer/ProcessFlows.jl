@@ -225,7 +225,7 @@ function workunit(sim::DES, kind::Int64, workfunc::Function, name::String,
                   timeslice::Number=0)
     wu = Workunit(name, description, kind, PFQueue(name*"-IN", sim, input),
                   Products(), PFQueue(name*"-OUT", sim, output), alpha,
-                  mtbf, mttr, timeslice, sim.time, sim.time, PFlog[])
+                  mtbf, mttr, timeslice)
     proc = @async work(sim, wu, workfunc)
     register(sim, proc)
     wu
