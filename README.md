@@ -1,7 +1,4 @@
-# PFlow.jl
-
-
-## Simulation of product flow
+# PFlow.jl - simulation of product flow
 
 `PFlow.jl` is a [`Julia`](https://julialang.org) library, able to
 simulate the **product flow** in production, development and service systems.
@@ -11,7 +8,7 @@ as automotive plants, multiprojects or hospitals.
 
 ### Simple approach
 
-``PFlow` uses Julia's coroutines and channels for discrete event simulation
+`PFlow` uses Julia's coroutines and channels for discrete event simulation
 and provides a model kit for basic entities of production systems like
 
 - work units,
@@ -32,10 +29,9 @@ simple framework for discrete event simulation: `delay` and `delayuntil`
 combined with use of Julia's channels:
 
 - [01 A Post Office](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/01%20A%20Post%20Office.ipynb)
-shows a queueing simulation.
+is a queueing simulation.
 - [02 Goldratt's Dice Game](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/02%20Goldratt's%20Dice%20Game.ipynb)
-shows a simulation of Goldratt's dice game, which is a very simplified production
-line simulation.
+shows Goldratt's dice game, which is a very simplified production line simulation.
 
 Further notebooks show `PFlow's` assumptions and applications for simulations
 of product flow systems:
@@ -45,7 +41,7 @@ of product flow systems:
 - [05 Parametrization of Production Systems](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/05%20Parametrization%20of%20Production%20Systems.ipynb) describes, why it is possible to parametrize simulations of production systems and projects by simple lists.
 - [06 Visualization of Product Flow](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/06%20Visualization%20of%20Product%20Flow.ipynb) is the 1st demonstration of the `PFlow` prototype in a notebook.
 - [07 First PFlow benchmarks](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/07%20First%20PFlow%20benchmarks.ipynb) is the first benchmark of the `PFlow` prototype.
-- [08 Intro to PFlow (Slides)](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/08%20Intro%20to%20PFlow%20(Slides).ipynb) is an Jupyter notebook with an slideshow, which can be viewed using [RISE](https://github.com/damianavila/RISE).
+- [08 Intro to PFlow (Slides)](https://github.com/pbayer/PFlow.jl/blob/master/docs/notebooks/08%20Intro%20to%20PFlow%20(Slides).ipynb) is a slideshow based on notebook 06, which can be viewed using [RISE](https://github.com/damianavila/RISE).
 
 ## Status of Project (as of 09/2017)
 
