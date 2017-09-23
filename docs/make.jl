@@ -14,7 +14,11 @@ makedocs(
             "Guide" => "man/guide.md",
             "Examples" => "man/examples.md",
         ],
-        "Library" => "man/api.md"],
+        "Library" => Any[
+            "Public" => "man/api.md",
+            "Internal" => "man/internal.md"
+        ]
+    ],
     html_prettyurls = true,
 )
 

@@ -27,7 +27,7 @@ for scheduled events gets too long for long simulations.
 
 - [x] (0.1) update the notebooks to use the new coroutine functionality
 - [ ] (0.1) API Documentation
-- [ ] (0.1) Outline
+- [x] (0.1) Outline
 - [ ] (0.1) Examples
 
 ### Tables, stats and visualization: `eval.jl`, `viz.jl`, `graphs.jl`

@@ -9,6 +9,17 @@
 
 event_horizon = 50
 
+"""
+    SimException(cause::Any, time::Float64=0.0, value::Any=nothing)
+
+Define a SimException, which can be thrown to tasks. Exceptions have to be
+handled by the tasks at which they are thrown.
+
+# Parameters
+- `cause::Any`: delivers a cause to the interrupted task
+- `time::Float64=0.0`: delivers a simulation time value to the interrupted task
+- `value::Any=nothing`: deliver some other value
+"""
 struct SimException <: Exception
   cause::Any
   time::Float64
@@ -18,6 +29,21 @@ struct SimException <: Exception
   end
 end
 
+"""
+Event(time::Number, value::Any=time, error::Bool=false,
+               channel::Channel=Channel{Any}(0), task::Task=current_task())
+
+create a simulation event, used for scheduling a task for a certain simulation
+time. This is used by `simulate` and `delayuntil`.
+
+# Parameters
+- `time::Number`: absolute simulation time,
+- `value::Any=time`: value to be passed to the task,
+- `error::Bool=false`: if true at event time a `SimException` is thrown to the task,
+- `channel::Channel=Channel{Any}(0)`: event channel for communication between
+  `simulate` and the task,
+- `task::Task=current_task()`: task to be notified at event time.
+"""
 mutable struct Event
     time::Float64
     value::Any
@@ -34,7 +60,15 @@ end
 """
     DES(starttime::Float64=0.0)
 
-start an event source, which can be used to schedule tasks at simulated times
+start an event source, used to schedule tasks at simulated times. An event
+source must be generated before starting any simulation client tasks or calling
+`simulate`. The event source must be passed to `delay` and `delayuntil`.
+The event source contains
+- the simulation time
+- the event and task queues
+- the event index
+
+and other useful information, used by `simulate`. See source.
 """
 mutable struct DES
     time::Float64

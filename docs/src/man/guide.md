@@ -1,4 +1,4 @@
-# `PFlow.jl` Package Guide
+# Package Guide
 
 ## Installation
 
