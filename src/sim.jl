@@ -30,7 +30,7 @@ struct SimException <: Exception
 end
 
 """
-Event(time::Number, value::Any=time, error::Bool=false,
+    Event(time::Number, value::Any=time, error::Bool=false,
                channel::Channel=Channel{Any}(0), task::Task=current_task())
 
 create a simulation event, used for scheduling a task for a certain simulation
@@ -104,7 +104,7 @@ create a new simulation event, send a request and wait for the scheduler
 
 # Arguments
 - `sim::DES`: event source for simulation events
-- `time::Float64`: sim.time when we want to be rewoken
+- `time::Float64`: absolute sim.time when the calling task wants to be rewoken
 - `value::Int=0`: value, which should be returned at the event
 - `error::Bool=false`: should an exception be raised
 """
@@ -121,7 +121,7 @@ create a new simulation event, send a request and yield to the scheduler
 
 # Arguments
 - `sim::DES`: event source for simulation events
-- `time::Float64`: time after sim.time, the condition is fulfilled
+- `time::Float64`: time after sim.time, when the calling task should be rewoken
 - `error::Bool=false`: should an exception be raised
 """
 delay(sim::DES, time::Number, error::Bool=false) = delayuntil(sim, sim.time + time, sim.time + time, error)
@@ -129,8 +129,8 @@ delay(sim::DES, time::Number, error::Bool=false) = delayuntil(sim, sim.time + ti
 """
     register(sim::DES, client::Task)
 
-register a task for a simulation. This is needed to proper startup and finish
-and must be called before calling simulate.
+register a task for a simulation. This is needed to terminate tasks if you call
+`simulate` with `finish=true`.
 """
 function register(sim::DES, client::Task)
     sim.clients[client] = Int64[]
@@ -145,7 +145,9 @@ end
 """
     removetask(sim::DES, task::Task)
 
-remove all scheduling entries for a task from sim
+remove all scheduling entries for a task from sim. This is needed for a call to
+`interrupttask`. Before throwing an exception to a client task, all registered
+future events for this task must be deleted.
 """
 function removetask(sim::DES, task::Task)
     for i ∈ sim.clients[task]
@@ -171,7 +173,7 @@ for this task from sim.
 # Arguments
 - `sim::DES`: event source for simulation events
 - `task::Task`: task
-- `exc::Exception=SimException(FAILURE)`: exception to throw
+- `exc::Exception=SimException(FINISHED)`: exception to throw
 """
 function interrupttask(sim::DES, task::Task, exc::Exception=SimException(FINISHED))
     removetask(sim, task)
@@ -179,6 +181,11 @@ function interrupttask(sim::DES, task::Task, exc::Exception=SimException(FINISHE
     yield()
 end
 
+"""
+    clock(ch::Channel, timer::Number=0)
+
+Run a clock task, which is called each `sim.time + n × accuracy` interval.
+"""
 function clock(ch::Channel, timer::Number=0)
     while true
         try
@@ -192,6 +199,11 @@ function clock(ch::Channel, timer::Number=0)
     end
 end
 
+"""
+    terminateclients(sim::DES)
+
+Throw a `SimException(FINISHED)` to each registered task.
+"""
 function terminateclients(sim::DES)
     for i in keys(sim.clients)
         try
@@ -208,7 +220,8 @@ end
 """
     schedule_event(sim::DES, ev::Event)
 
-schedule a simulation event for execution
+schedule a simulation event for execution. This normally is not called by a user,
+but used only internally.
 """
 function schedule_event(sim::DES, ev::Event)
     if haskey(sim.times, ev.time)
@@ -228,7 +241,7 @@ end
 """
     simulate(sim::DES, time::Number; finish::Bool=false)
 
-run a simulation for sim.time + time
+run a simulation for sim.time + time.
 
 # Arguments
 - `sim::DES`: event source for simulation events

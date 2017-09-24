@@ -7,7 +7,11 @@ Those functions are used internally and normally not called by the user.
 ```@docs
 Event
 register
+removetask
 interrupttask
+clock
+terminateclients
+schedule_event
 ```
 
 ## Queueing

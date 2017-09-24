@@ -7,20 +7,50 @@
 # license: MIT
 # --------------------------------------------
 
+"""
+    isfull(pq::PFQueue) :: Bool
+
+is the PFQueue full: `length(pq.queue.data) >= pq.queue.sz_max`
+"""
 isfull(pq::PFQueue) = length(pq.queue.data) >= pq.queue.sz_max
 
+"""
+    isempty(pq::PFQueue) :: Bool
+
+is the PFQueue empty: `length(pq.queue.data) == 0`
+"""
 isempty(pq::PFQueue) = length(pq.queue.data) == 0
 
+"""
+    capacity(pq::PFQueue) :: Int64
+
+return the capacity of a PFQueue: `pq.queue.sz_max`
+"""
 capacity(pq::PFQueue) = pq.queue.sz_max
 
+"""
+    length(pq::PFQueue) :: Int64
+
+return the length of a PFQueue: `length(pq.queue.data)`
+"""
 length(pq::PFQueue) = length(pq.queue.data)
 
+"""
+    front(pq::PFQueue) :: Product
+
+return the first element in the PFQueue without removing it: `pq.queue.data[1]`
+"""
 front(pq::PFQueue) = pq.queue.data[1]
 
+"""
+    back(pq::PFQueue) :: Product
+
+return the last element in PFQueue without removing it: `pq.queue.data[end]`
+"""
 back(pq::PFQueue) = pq.queue.data[end]
 
 """
-    enqueue!(pq::PFQueue, p::Product, time::Float64=pq.env.time)::Float64
+    time = enqueue!(pq::PFQueue, p::Product, time::Float64=pq.env.time)
 
 put p into the pq.queue channel. If isfull(pq) wait.
 
@@ -52,7 +82,7 @@ function enqueue!(pq::PFQueue, p::Product, time::Float64=pq.env.time)::Float64
 end
 
 """
-    dequeue!(pq::PFQueue, time::Float64=pq.env.time)
+    (p, time) = dequeue!(pq::PFQueue, time::Float64=pq.env.time)
 
 wait for something in the queue, remove it from its front and return it.
 

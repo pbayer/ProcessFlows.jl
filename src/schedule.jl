@@ -7,6 +7,14 @@
 # license: MIT
 # --------------------------------------------
 
+"""
+    sched    = Channel(0)
+
+internal scheduling channel. The product scheduling task is waiting with `take!`
+for notifications on this channel in order to wake up. A client task executes a
+`put!` on `sched` in order to activate the `scheduler` process. This is done
+by `call_scheduler()`.
+""" 
 sched    = Channel(0)
 
 """

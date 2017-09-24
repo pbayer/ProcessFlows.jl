@@ -26,7 +26,7 @@ for scheduled events gets too long for long simulations.
 ### Documentation
 
 - [x] (0.1) update the notebooks to use the new coroutine functionality
-- [ ] (0.1) API Documentation
+- [x] (0.1) API Documentation
 - [x] (0.1) Outline
 - [ ] (0.1) Examples
 
