@@ -1,0 +1,13 @@
+name = "PFlow"
+uuid = "179e2a54-5481-46c5-8509-ff154fdc494a"
+authors = ["Paul Bayer"]
+version = "0.1.0"
+
+[compat]
+julia = "1"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
