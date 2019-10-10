@@ -1,13 +1,11 @@
-println("===== Testing DiscreteEvent.jl =====")
+println("===== Testing PFlow.jl =====")
 
-using Test, DiscreteEvent, Random
+using Test, PFlow, Random
 
 println("... testing Buffer.jl ...")
 include("test_Buffer.jl")
 println("... testing Jobs.jl ...")
 include("test_Jobs.jl")
-println("... testing Clock.jl ...")
-include("test_Clock.jl")
 println("... testing Flow.jl ...")
 include("test_Flow.jl")
 println("... testing Factory.jl ...")
