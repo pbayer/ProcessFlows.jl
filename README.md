@@ -5,4 +5,4 @@
 [![Codecov](https://codecov.io/gh/pbayer/PFlow.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/pbayer/PFlow.jl)
 [![Coveralls](https://coveralls.io/repos/github/pbayer/PFlow.jl/badge.svg?branch=master)](https://coveralls.io/github/pbayer/PFlow.jl?branch=master)
 
-I am doing a complete rewrite of `PFlow.jl` based on `StateMachines.jl` and `Sim.jl`. Please stay tuned. 
+I am doing a complete rewrite of `PFlow.jl` based on `StateMachines.jl` and `Simulate.jl`. Please stay tuned. 
