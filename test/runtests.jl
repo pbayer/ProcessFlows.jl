@@ -1,6 +1,6 @@
-using ProcessFlow
+using ProcessFlows
 using Test
 
-@testset "ProcessFlow.jl" begin
+@testset "ProcessFlows.jl" begin
     # Write your tests here.
 end

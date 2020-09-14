@@ -1,3 +1,3 @@
-using Documenter, DiscreteEvent
+using Documenter, ProcessFlows
 
-makedocs(sitename="Manual for DiscreteEvent.jl")
+makedocs(sitename="Manual for ProcessFlows.jl")

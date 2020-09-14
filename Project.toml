@@ -1,7 +1,12 @@
-name = "ProcessFlow"
-uuid = "b0dd4fb9-750d-4eb9-a41b-8297d0722c2c"
+name = "ProcessFlows"
+uuid = "f2b6c479-7017-4738-94bf-5f7091903092"
 authors = ["Paul Bayer"]
 version = "0.1.0"
+
+[deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
+DiscreteEvents = "127e53a7-d08a-4bd9-afb0-daf0d2b65a85"
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 
 [compat]
 julia = "1"
