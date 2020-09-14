@@ -1,4 +1,4 @@
-# ProcessFlow.jl
+# ProcessFlows.jl
 
 Process flows in service, manufacturing, logistics …
 
