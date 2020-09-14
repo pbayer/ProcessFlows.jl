@@ -1,5 +1,5 @@
-name = "PFlow"
-uuid = "179e2a54-5481-46c5-8509-ff154fdc494a"
+name = "ProcessFlow"
+uuid = "b0dd4fb9-750d-4eb9-a41b-8297d0722c2c"
 authors = ["Paul Bayer"]
 version = "0.1.0"
 
